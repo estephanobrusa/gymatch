@@ -1,0 +1,8 @@
+User-agent: *
+Disallow: /(protected)/
+Disallow: /onboarding/
+Disallow: /auth/
+Allow: /
+Allow: /login
+
+Sitemap: https://gymatch.app/sitemap.xml

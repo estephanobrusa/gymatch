@@ -1,0 +1,42 @@
+# Dependencies
+node_modules/
+.pnp
+.pnp.js
+
+# Next.js
+.next/
+out/
+
+# Environment variables
+.env
+.env.*
+!.env.example
+
+# Build outputs
+dist/
+build/
+
+# Turbo
+.turbo/
+
+# Playwright
+apps/web/playwright-report/
+apps/web/test-results/
+apps/web/e2e/.auth/
+
+# Misc
+.DS_Store
+*.pem
+*.tsbuildinfo
+.eslintcache
+
+# Prisma
+packages/db/node_modules/
+
+# Local tooling
+.atl/
+.engram/
+.codegraph/
+
+# Build artifacts
+apps/web/public/sw.js

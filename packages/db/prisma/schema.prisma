@@ -1,0 +1,551 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider  = "postgresql"
+  // Supabase pooler URL (port 6543) — used for runtime queries
+  url       = env("DATABASE_URL")
+  // Direct connection URL (port 5432) — used for migrations (bypasses pooler)
+  directUrl = env("DIRECT_URL")
+}
+
+// ──────────────────────────────────────────────
+// Routine Enums
+// ──────────────────────────────────────────────
+
+enum SessionType {
+  NORMAL
+  INTENSE
+  PR_DAY
+  RECOVERY
+}
+
+enum MuscleGroup {
+  CHEST
+  BACK
+  LEGS
+  SHOULDERS
+  ARMS
+  FULL_BODY
+  CARDIO
+  WOD
+  REST
+}
+
+enum RoutineTemplate {
+  PUSH_PULL_LEGS
+  BRO_SPLIT
+  FULL_BODY_3
+  UPPER_LOWER
+  ARNOLD_SPLIT
+  CUSTOM
+}
+
+// ──────────────────────────────────────────────
+// Profile Enums
+// ──────────────────────────────────────────────
+
+enum Gender {
+  MALE
+  FEMALE
+  NON_BINARY
+  OTHER
+  PREFER_NOT_TO_SAY
+}
+
+enum FitnessGoal {
+  MUSCLE_GAIN
+  FAT_LOSS
+  STRENGTH
+  ENDURANCE
+  FLEXIBILITY
+  GENERAL_FITNESS
+  SPORTS_PERFORMANCE
+}
+
+enum ExperienceLevel {
+  BEGINNER
+  INTERMEDIATE
+  ADVANCED
+  EXPERT
+}
+
+enum Schedule {
+  EARLY_MORNING
+  MORNING
+  MIDDAY
+  AFTERNOON
+  EVENING
+  NIGHT
+}
+
+enum Discipline {
+  BASKETBALL
+  BJJ
+  BOXING
+  CALISTHENICS
+  CLIMBING
+  CROSSFIT
+  CYCLING
+  DANCE
+  FUNCTIONAL
+  HIIT
+  JUDO
+  KARATE
+  KICKBOXING
+  MARTIAL_ARTS
+  MMA
+  MUAY_THAI
+  OTHER
+  PADEL
+  PILATES
+  ROWING
+  RUNNING
+  SOCCER
+  SPINNING
+  SWIMMING
+  TENNIS
+  WEIGHTLIFTING
+  YOGA
+  ZUMBA
+}
+
+enum LookingFor {
+  ACCOUNTABILITY_PARTNER
+  SPOTTER
+  RUNNING_BUDDY
+  TRAINING_PARTNER
+  MENTOR
+  MENTEE
+  WORKOUT_GROUP
+}
+
+// ──────────────────────────────────────────────
+// Admin
+// ──────────────────────────────────────────────
+
+enum Role {
+  USER
+  ADMIN
+}
+
+// ──────────────────────────────────────────────
+// User & Profile
+// ──────────────────────────────────────────────
+
+model User {
+  id                String           @id @default(uuid())
+  supabaseId        String           @unique
+  email             String           @unique
+  name              String
+  username          String?          @unique
+  birthDate         DateTime?
+  bio               String?
+  gymId             String?
+  // Profile fields
+  city              String?
+  gender            Gender?
+  maxDistance       Int?
+  minAge            Int              @default(18)
+  maxAge            Int              @default(50)
+  fitnessGoals      FitnessGoal[]
+  experienceLevel   ExperienceLevel?
+  schedule          Schedule[]
+  scheduleSlots     ScheduleSlot[]
+  disciplines       Discipline[]
+  lookingFor        LookingFor[]
+  height            Int? // cm
+  weight            Int? // kg
+  weeklyFrequency   Int?
+  onboardingVersion Int              @default(1)
+  role              Role             @default(USER)
+  todayMuscleGroup  MuscleGroup?
+  todaySessionType  SessionType?
+  hideProfile       Boolean          @default(false)
+  incognitoMode     Boolean          @default(false)
+  bannedAt          DateTime?
+  createdAt         DateTime         @default(now())
+  updatedAt         DateTime         @updatedAt
+
+  gym                   Gym?           @relation(fields: [gymId], references: [id])
+  weeklyRoutine         WeeklyRoutine?
+  photos                UserPhoto[]
+  swipesMade            Swipe[]        @relation("SwipeFrom")
+  swipesReceived        Swipe[]        @relation("SwipeTo")
+  matchesA              Match[]        @relation("MatchUserA")
+  matchesB              Match[]        @relation("MatchUserB")
+  messages              Message[]
+reportsGiven          Report[]        @relation("ReportFrom")
+  reportsReceived       Report[]        @relation("ReportTo")
+  reportsResolved       Report[]        @relation("ReportResolvedBy")
+  blocksGiven           Block[]         @relation("BlockFrom")
+  blocksReceived        Block[]         @relation("BlockTo")
+  appeals               Appeal[]        @relation("AppealOwner")
+  appealsReviewed       Appeal[]        @relation("AppealReviewedBy")
+  notificationsReceived Notification[] @relation("NotificationRecipient")
+  notificationsSent     Notification[] @relation("NotificationActor")
+  createdEvents          Event[]         @relation("CreatedEvents")
+  eventRsvps             EventRsvp[]
+  pushSubscriptions      PushSubscription[]
+
+  @@map("users")
+}
+
+model UserPhoto {
+  id          String   @id @default(uuid())
+  userId      String
+  url         String
+  storagePath String?
+  position    Int      @default(0)
+  createdAt   DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("user_photos")
+}
+
+// ──────────────────────────────────────────────
+// Weekly Routine
+// ──────────────────────────────────────────────
+
+model WeeklyRoutine {
+  id        String       @id @default(uuid())
+  userId    String       @unique
+  mon       MuscleGroup?
+  tue       MuscleGroup?
+  wed       MuscleGroup?
+  thu       MuscleGroup?
+  fri       MuscleGroup?
+  sat       MuscleGroup?
+  sun       MuscleGroup?
+  createdAt DateTime     @default(now())
+  updatedAt DateTime     @updatedAt
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("weekly_routines")
+}
+
+// ──────────────────────────────────────────────
+// Gym
+// ──────────────────────────────────────────────
+
+model Gym {
+  id            String   @id @default(uuid())
+  name          String
+  address       String?
+  city          String?
+  googlePlaceId String?  @unique
+  lat           Float?
+  lng           Float?
+  createdAt     DateTime @default(now())
+
+  members       User[]
+  scheduleSlots ScheduleSlot[]
+  events         Event[]
+
+  @@map("gyms")
+}
+
+// ──────────────────────────────────────────────
+// Weekly Schedule
+// ──────────────────────────────────────────────
+
+enum DayOfWeek {
+  MONDAY
+  TUESDAY
+  WEDNESDAY
+  THURSDAY
+  FRIDAY
+  SATURDAY
+  SUNDAY
+}
+
+model ScheduleSlot {
+  id        String    @id @default(uuid())
+  userId    String
+  day       DayOfWeek
+  startTime String    // "HH:mm" 24h
+  endTime   String?   // optional "HH:mm"
+  activity  String
+  gymId     String?
+  createdAt DateTime  @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  gym  Gym? @relation(fields: [gymId], references: [id], onDelete: SetNull)
+
+  @@index([userId])
+  @@map("schedule_slots")
+}
+
+// ──────────────────────────────────────────────
+// Events
+// ──────────────────────────────────────────────
+
+enum EventType {
+  CHALLENGE
+  CLINIC
+  COMPETITION
+  FUNDRAISER
+  MEETUP
+  OPEN_MAT
+  RETREAT
+  SEMINAR
+  SOCIAL
+  TOURNAMENT
+  WORKSHOP
+}
+
+model Event {
+  id          String    @id @default(uuid())
+  title       String
+  type        EventType
+  description String?
+  startsAt    DateTime
+  endsAt      DateTime?
+  location    String?
+  city        String? // denormalized for filtering; derived server-side
+  gymId       String?
+  capacity    Int?
+  price       Int       @default(0) // whole units, 0 = free
+  disciplines Discipline[]
+  creatorId   String
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  creator User      @relation("CreatedEvents", fields: [creatorId], references: [id], onDelete: Cascade)
+  gym     Gym?      @relation(fields: [gymId], references: [id], onDelete: SetNull)
+  rsvps   EventRsvp[]
+
+  @@index([gymId])
+  @@index([startsAt])
+  @@map("events")
+}
+
+model EventRsvp {
+  id        String   @id @default(uuid())
+  eventId   String
+  userId    String
+  createdAt DateTime @default(now())
+
+  event Event @relation(fields: [eventId], references: [id], onDelete: Cascade)
+  user  User  @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([eventId, userId])
+  @@map("event_rsvps")
+}
+
+// ──────────────────────────────────────────────
+// Matching
+// ──────────────────────────────────────────────
+
+model Swipe {
+  id        String         @id @default(uuid())
+  fromId    String
+  toId      String
+  direction SwipeDirection
+  createdAt DateTime       @default(now())
+
+  from User @relation("SwipeFrom", fields: [fromId], references: [id], onDelete: Cascade)
+  to   User @relation("SwipeTo", fields: [toId], references: [id], onDelete: Cascade)
+
+  @@unique([fromId, toId])
+  @@map("swipes")
+}
+
+enum SwipeDirection {
+  LIKE
+  PASS
+}
+
+model Match {
+  id        String   @id @default(uuid())
+  userAId   String
+  userBId   String
+  createdAt DateTime @default(now())
+
+  userA         User           @relation("MatchUserA", fields: [userAId], references: [id], onDelete: Cascade)
+  userB         User           @relation("MatchUserB", fields: [userBId], references: [id], onDelete: Cascade)
+  conversations Conversation[]
+
+  @@unique([userAId, userBId])
+  @@map("matches")
+}
+
+// ──────────────────────────────────────────────
+// Messaging
+// ──────────────────────────────────────────────
+
+model Conversation {
+  id        String   @id @default(uuid())
+  matchId   String
+  createdAt DateTime @default(now())
+
+  match    Match     @relation(fields: [matchId], references: [id], onDelete: Cascade)
+  messages Message[]
+
+  @@map("conversations")
+}
+
+model Message {
+  id             String    @id @default(uuid())
+  conversationId String
+  senderId       String
+  body           String
+  readAt         DateTime?
+  createdAt      DateTime  @default(now())
+
+  conversation Conversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+  sender       User         @relation(fields: [senderId], references: [id], onDelete: Cascade)
+
+  @@map("messages")
+}
+
+// ──────────────────────────────────────────────
+// Moderation
+// ──────────────────────────────────────────────
+
+enum ReportReason {
+  FAKE_PROFILE
+  HARASSMENT
+  SEXUAL_CONTENT
+  SPAM
+  UNDERAGE
+  OFFENSIVE_BEHAVIOR
+}
+
+enum ReportStatus {
+  PENDING
+  WARNED
+  BANNED
+  DISMISSED
+}
+
+enum AppealStatus {
+  PENDING
+  ACCEPTED
+  REJECTED
+}
+
+model Report {
+  id           String       @id @default(uuid())
+  reporterId   String
+  targetId     String
+  reason       ReportReason
+  status       ReportStatus @default(PENDING)
+  note         String?
+  evidence     Json?
+  resolvedById String?
+  resolvedAt   DateTime?
+  createdAt    DateTime     @default(now())
+
+  reporter   User @relation("ReportFrom", fields: [reporterId], references: [id], onDelete: Cascade)
+  target     User @relation("ReportTo", fields: [targetId], references: [id], onDelete: Cascade)
+  resolvedBy User? @relation("ReportResolvedBy", fields: [resolvedById], references: [id], onDelete: SetNull)
+
+  @@unique([reporterId, targetId])
+  @@index([status])
+  @@map("reports")
+}
+
+model Block {
+  id        String   @id @default(uuid())
+  fromId    String
+  toId      String
+  createdAt DateTime @default(now())
+
+  from User @relation("BlockFrom", fields: [fromId], references: [id], onDelete: Cascade)
+  to   User @relation("BlockTo", fields: [toId], references: [id], onDelete: Cascade)
+
+  @@unique([fromId, toId])
+  @@map("blocks")
+}
+
+// ──────────────────────────────────────────────
+// Appeals
+// ──────────────────────────────────────────────
+
+model Appeal {
+  id           String       @id @default(uuid())
+  userId       String       @unique
+  reason       String
+  status       AppealStatus @default(PENDING)
+  adminNote    String?
+  reviewedById String?
+  reviewedAt   DateTime?
+  createdAt    DateTime     @default(now())
+
+  user       User @relation("AppealOwner", fields: [userId], references: [id], onDelete: Cascade)
+  reviewedBy User? @relation("AppealReviewedBy", fields: [reviewedById], references: [id], onDelete: SetNull)
+
+  @@index([status])
+  @@map("appeals")
+}
+
+// ──────────────────────────────────────────────
+// Notifications
+// ──────────────────────────────────────────────
+
+enum NotificationType {
+  NEW_MATCH
+  NEW_MESSAGE
+}
+
+model Notification {
+  id             String           @id @default(uuid())
+  userId         String // recipient
+  type           NotificationType
+  actorId        String? // who triggered it (null for system)
+  matchId        String?
+  conversationId String?
+  readAt         DateTime?
+  createdAt      DateTime         @default(now())
+
+  user  User  @relation("NotificationRecipient", fields: [userId], references: [id], onDelete: Cascade)
+  actor User? @relation("NotificationActor", fields: [actorId], references: [id], onDelete: SetNull)
+
+  @@index([userId, readAt])
+  @@map("notifications")
+}
+
+// ──────────────────────────────────────────────
+// Push Subscriptions
+// ──────────────────────────────────────────────
+
+model PushSubscription {
+  id        String   @id @default(uuid())
+  userId    String
+  endpoint  String   @unique
+  p256dh    String
+  auth      String
+  createdAt DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@map("push_subscriptions")
+}
+
+// ──────────────────────────────────────────────
+// Waitlist
+// ──────────────────────────────────────────────
+
+model WaitlistEntry {
+  id        String   @id @default(uuid())
+  email     String   @unique
+  name      String?
+  createdAt DateTime @default(now())
+
+  @@map("waitlist_entries")
+}
+
+model AppSetting {
+  key   String @id
+  value String
+
+  @@map("app_settings")
+}
