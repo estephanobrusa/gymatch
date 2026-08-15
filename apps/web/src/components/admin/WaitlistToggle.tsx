@@ -23,7 +23,7 @@ export function WaitlistToggle({
     setError(null);
     const result = await setWaitlistActiveAction(next);
     setBusy(false);
-    if (!result.success) {
+    if ("error" in result) {
       setActive(!next);
       setError(result.error);
       return;

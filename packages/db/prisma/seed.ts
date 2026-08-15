@@ -575,7 +575,9 @@ async function upsertUsers(
   const created = [];
   for (let i = 0; i < USERS.length; i++) {
     const u = USERS[i];
+    if (!u) continue;
     const gymId = gymIds[i % gymIds.length]; // rotate through gyms
+    if (!gymId) continue;
     const { fitnessGoals, disciplines, schedule, lookingFor, ...rest } = u;
     const record = await prisma.user.upsert({
       where: { supabaseId: u.supabaseId },
@@ -614,10 +616,12 @@ async function seedPhotos(prisma: PrismaClient, userIds: string[]) {
   for (let i = 0; i < userIds.length; i++) {
     const count = (i % 3) + 1; // 1, 2, or 3 photos per user
     for (let p = 0; p < count; p++) {
-      const poolIdx = (i + p) % PHOTO_POOL.length;
+      const userId = userIds[i];
+      const photoId = PHOTO_POOL[(i + p) % PHOTO_POOL.length];
+      if (!userId || !photoId) continue;
       photoData.push({
-        userId: userIds[i],
-        url: photoUrl(PHOTO_POOL[poolIdx]),
+        userId,
+        url: photoUrl(photoId),
         position: p,
       });
     }
@@ -635,6 +639,7 @@ async function seedSwipes(
   for (const pair of SWIPE_PAIRS) {
     const fromId = userIds[pair.fromIndex];
     const toId = userIds[pair.toIndex];
+    if (!fromId || !toId) continue;
     const direction =
       pair.direction === "LIKE" ? SwipeDirection.LIKE : SwipeDirection.PASS;
     await prisma.swipe.upsert({
@@ -657,6 +662,7 @@ async function seedMatches(
   for (const [a, b] of mutualPairs) {
     const userAId = userIds[a];
     const userBId = userIds[b];
+    if (!userAId || !userBId) continue;
     const match = await prisma.match.upsert({
       where: { userAId_userBId: { userAId, userBId } },
       create: { userAId, userBId },

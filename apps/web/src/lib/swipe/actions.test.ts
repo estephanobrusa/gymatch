@@ -41,9 +41,17 @@ import { prismaAdmin } from "@/lib/auth/admin";
 
 const mockGetUser = getUser as Mock;
 const mockTransaction = prismaAdmin.$transaction as Mock;
-const mockUserFindUnique = (prismaAdmin.user as { findUnique: Mock }).findUnique;
+const mockUserFindUnique = (prismaAdmin.user as unknown as { findUnique: Mock }).findUnique;
 
 // ── Helper: build a transaction context and wire $transaction ─────────────
+type TransactionCtx = {
+  swipe: { upsert: Mock; findFirst: Mock };
+  match: { create: Mock };
+  conversation: { create: Mock };
+  notification: { create: Mock };
+  user: { findUnique: Mock };
+};
+
 function makeTransactionCtx(opts?: {
   reverseSwipe?: object | null;
 }) {
@@ -60,7 +68,7 @@ function makeTransactionCtx(opts?: {
     photos: [],
   });
 
-  const tx = {
+  const tx: TransactionCtx = {
     swipe: { upsert: swipeUpsertMock, findFirst: swipeFindFirstMock },
     match: { create: matchCreateMock },
     conversation: { create: convCreateMock },
@@ -68,7 +76,7 @@ function makeTransactionCtx(opts?: {
     user: { findUnique: txUserFindUniqueMock },
   };
 
-  mockTransaction.mockImplementation(async (fn: (tx: typeof tx) => unknown) => fn(tx));
+  mockTransaction.mockImplementation(async (fn: (tx: TransactionCtx) => unknown) => fn(tx));
 
   return { tx, swipeUpsertMock, swipeFindFirstMock, matchCreateMock, convCreateMock, notificationCreateMock };
 }
