@@ -75,10 +75,11 @@ export async function signInWithGoogle(): Promise<void> {
   // DEBUG: the authorize URL Supabase generated — contains redirect_to that
   // Supabase will honor after Google auth.
   console.log("[OAuth] authorize URL:", data.url);
+  const redirectToMatch = /redirect_to=([^&]+)/.exec(data.url);
   console.log(
     "[OAuth] redirect_to in URL:",
-    /redirect_to=([^&]+)/.exec(data.url)?.[1]
-      ? decodeURIComponent(/redirect_to=([^&]+)/.exec(data.url)![1])
+    redirectToMatch?.[1]
+      ? decodeURIComponent(redirectToMatch[1])
       : "(not found in URL)"
   );
 
