@@ -12,6 +12,10 @@ strictDepBuilds: true            # run builds only for approved packages
 verifyDepsBeforeRun: install     # verify dependencies before running scripts
 # allowBuilds: {}                # approve postinstall scripts here when pnpm asks
 
+# Approved build scripts (strictDepBuilds)
+allowBuilds:
+  unrs-resolver: true            # native resolver used by eslint-config-expo tooling
+
 # Hoisting (migrated from .npmrc — pnpm 11 only reads auth/registry there)
 publicHoistPattern:
   - "*"
