@@ -18,7 +18,7 @@ const nextConfig: NextConfig = {
   output: "standalone",
   // Trace files from the monorepo root so workspace packages are bundled.
   outputFileTracingRoot: path.join(__dirname, "../../"),
-  transpilePackages: ["@gymatch/config", "@gymatch/db", "@gymatch/types"],
+  transpilePackages: ["@gymatch/config", "@gymatch/db"],
 };
 
 export default withSerwist(nextConfig);

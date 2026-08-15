@@ -32,9 +32,6 @@ importers:
       '@gymatch/db':
         specifier: workspace:*
         version: link:../../packages/db
-      '@gymatch/types':
-        specifier: workspace:*
-        version: link:../../packages/types
       '@prisma/client':
         specifier: ^5.22.0
         version: 5.22.0(prisma@5.22.0)
@@ -202,8 +199,6 @@ importers:
       typescript:
         specifier: ^5.5.4
         version: 5.9.3
-
-  packages/types: {}
 
 packages:
 

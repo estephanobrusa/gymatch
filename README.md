@@ -6,6 +6,21 @@ Tinder-style fitness social app: match with gym partners who train near you, at 
 
 ---
 
+## Product vision
+
+Gymatch connects people looking for compatible training partners based on location, gym, fitness goals, and schedule. The core loop is swipe → match → chat, focused exclusively on fitness and workout accountability:
+
+- find gym partners
+- train together
+- improve consistency
+- socialize inside fitness
+
+**MVP goal**: validate whether users will adopt a social fitness app for these use cases.
+
+**Monetization groundwork** (feature-flagged from day one, all free initially): Super Likes, Rewind, unlimited likes, Boost visibility, and "see who liked you" — enabled later via `NEXT_PUBLIC_FEATURE_*` flags.
+
+---
+
 ## Quick start
 
 ```bash
@@ -38,10 +53,8 @@ Verify it works: log in (seed users use email/password), swipe right a few times
 | `apps/web/` | — | Next.js 15 App Router app (PWA), the only app |
 | `packages/db/` | `@gymatch/db` | Prisma schema, migrations, seed script |
 | `packages/config/` | `@gymatch/config` | Shared `tsconfig.base.json` + Tailwind base config |
-| `packages/types/` | `@gymatch/types` | Shared TypeScript types |
 | `packages/eslint-config/` | `@gymatch/eslint-config` | ESLint 9 flat config (`next` / `react` / `base`) |
 | `docs/` | — | Product specs: v4.md (pending roadmap) |
-| `docker-compose.yml` | — | Local Postgres 16 (matches `DIRECT_URL`) |
 
 ---
 
@@ -58,6 +71,18 @@ Verify it works: log in (seed users use email/password), swipe right a few times
 | Forms/validation | zod 4 |
 | Testing | Vitest 4 (unit/integration, RTL + jsdom), Playwright (mobile-first e2e) |
 
+### Why Supabase (not Strapi)
+
+Strapi was explicitly rejected: unnecessary complexity, weak fit for realtime social apps, inefficient for swipe/match/chat, and too CMS-oriented. Supabase provides Postgres, Auth, Realtime, Storage, and Row Level Security in one platform, plus Next.js Route Handlers / Server Actions for the API layer.
+
+### Why Postgres (not SQLite)
+
+SQLite is off the table: dangerous behavioral differences with Postgres, partial support for advanced features, and inconsistent realtime/testing. Local dev uses Postgres via Docker; production uses Supabase Postgres.
+
+### Mobile strategy
+
+**Phase 1**: Next.js PWA. **Phase 2**: React Native (Expo). Validate the product first, then reuse the backend logic.
+
 ---
 
 ## Environment variables
@@ -69,7 +94,7 @@ All in `apps/web/.env.local` (root `.env.example` documents them).
 | `NEXT_PUBLIC_SUPABASE_URL` | middleware, supabase client/server | public |
 | `NEXT_PUBLIC_SUPABASE_ANON_KEY` | middleware, supabase client/server | public |
 | `DATABASE_URL` | Prisma runtime | Supabase pooler (`:6543`) |
-| `DIRECT_URL` | Prisma migrations + seed | direct connection (`:5432`); local Postgres via docker-compose |
+| `DIRECT_URL` | Prisma migrations + seed | direct connection (`:5432`); bypasses the pooler |
 | `ADMIN_DATABASE_URL` | `lib/auth/admin.ts` admin client | bypasses RLS for server actions |
 | `GOOGLE_PLACES_API_KEY` | gym search server actions | needed for GymSearch UI |
 | `NEXT_PUBLIC_FEATURE_SUPER_LIKE` / `_REWIND` / `_UNLIMITED_LIKES` | swipe feature flags | V3 groundwork; enable only with exactly `"true"` |
@@ -120,7 +145,23 @@ Migrations (`prisma/migrations/`) track the evolution from init → auth → pro
 - **Realtime**: `ChatWindow` subscribes to DELETE on `matches` + INSERT on `blocks` (leaves the chat when the match is removed remotely); `NotificationBell` subscribes to `notifications` with a 60s polling fallback.
   - ⚠️ **Gotcha**: Realtime tables must be added to the `supabase_realtime` publication in the hosted DB (`ALTER PUBLICATION supabase_realtime ADD TABLE <name>;`) — unit tests mock the client and never catch a missing publication.
 - **Feature flags**: `NEXT_PUBLIC_FEATURE_*` env vars gate V3 mechanics (Super Like, Rewind, unlimited likes).
-- **Testing**: 39 Vitest files (unit + integration, RTL); `// @vitest-environment jsdom` opt-in per component test; Playwright mobile-first (390×844), 3 projects, auth storage state.
+- **Testing**: 48 Vitest files (432 unit/integration tests, RTL); `// @vitest-environment jsdom` opt-in per component test; Playwright mobile-first (390×844), 3 projects, auth storage state.
+
+---
+
+## Deployment & CI/CD
+
+**Target**: Docker image on a VPS managed with Dockploy (Docker Compose), reverse proxy nginx/caddy. The app ships as a standalone Next.js build (`output: "standalone"` in `next.config.ts`).
+
+**GitHub Actions** (all use the automatic `GITHUB_TOKEN`, no manual secrets):
+
+| Workflow | Trigger | What it does |
+|----------|---------|--------------|
+| `.github/workflows/ci.yml` | push/PR to `main` + `release` | install → `prisma generate` → lint → typecheck → vitest |
+| `.github/workflows/release.yml` | `workflow_dispatch` (`rc` / `stable`) | semver bump (root `package.json`), git tag, GitHub Release — RC as prerelease (`vX.Y.Z-rc.N`), stable as full release (`vX.Y.Z`) |
+| `.github/workflows/docker-image.yml` | push tag `v*` / manual | build + push image to `ghcr.io/<owner>/gymatch` (tag + `latest` for stables) |
+
+Version bumps come from `scripts/release-version.mjs` (auto-next patch or rc cycle, explicit semver allowed).
 
 ---
 
@@ -130,6 +171,7 @@ Everything shipped is listed here. Everything pending lives in [`docs/v4.md`](do
 
 | Scope | Status |
 |-------|--------|
+| MVP: auth (Google OAuth), onboarding, profiles, photos, swipe, match, realtime chat, report/block | ✅ done |
 | Design system, back nav, seed, gym search, profile edit, onboarding fitness+routine | ✅ done |
 | Block, report, unmatch, delete account, in-app notifications | ✅ done |
 | Age range filter, 6 photos, weekly training schedule, schedule compatibility badge | ✅ done |
@@ -139,9 +181,19 @@ Everything shipped is listed here. Everything pending lives in [`docs/v4.md`](do
 
 ---
 
+## Product decisions & rationale
+
+- **Don't over-engineer**: no microservices, no Kubernetes, no complex event buses, no custom websocket infra. With ~1000 users a simple architecture wins.
+- **Matching stays simple**: distance + gym + goals. No AI, no complex scoring, no advanced recommendations initially.
+- **Moderation early**: social apps die fast without moderation — report/block is in the MVP (categories: fake profile, harassment, sexual content, spam, underage, offensive behavior). Blocking removes the match, chat, and profile, and prevents rematching.
+- **GDPR baseline**: account deletion, associated chats and photos deletion; data export deferred.
+- **Push notifications** (prepared from MVP): new match, new message; Super Like/Boost later.
+- **Costs at MVP**: Supabase free/pro tier + VPS €10–20/mo + Google Places (low) + domain ~€10/yr ≈ €20–50/mo.
+
+---
+
 ## Known quirks
 
-- **Git repo root is the home directory** (`/Users/brusae`), not this folder — no `.git` inside `gymatchs/`. Commit paths are relative to home (e.g. `gymatchs/apps/web/...`), and the tracked remote is a personal home-dir repo, not a Gymatch-specific one.
 - `packages/db/prisma.config.ts` imports `@prisma/adapter-pg` / `pg` without declaring them — schema migrations work via `directUrl`, but that config path can fail in isolation.
 - PWA manifest `theme_color` updated to coral `#f43f5e`; icon files (`icon-192.png`, `icon-512.png`) still missing from `public/` — PWA install will show a blank icon until they are added.
 - `GOOGLE_PLACES_API_KEY` is not set in dev, so GymSearch UI returns no results until it is.
@@ -155,7 +207,22 @@ Everything shipped is listed here. Everything pending lives in [`docs/v4.md`](do
   - `apple-icon.png` — 180×180 px PNG (iOS "Add to Home Screen")
   - `icon-192.png` — 192×192 px PNG (PWA)
   - `icon-512.png` — 512×512 px PNG (PWA splash screen)
-  
+
   Easiest workflow: export a 512×512 PNG of the logo → run it through [realfavicongenerator.net](https://realfavicongenerator.net) → copy the output files here.
-# gymatch
-# gymatch
+
+---
+
+## Implementation decisions (auto-documented)
+
+### Auth (SDD change: auth)
+
+- **Google OAuth** via Supabase Auth + `@supabase/ssr`
+- **`ADMIN_DATABASE_URL`**: port 5432 direct (bypasses RLS for `syncUser` via Prisma service role)
+- **Split gate pattern**: `middleware.ts` = auth gate (Edge), `(protected)/layout.tsx` = onboarding gate (Node.js)
+- **Onboarding complete** = username + birthDate + at least 1 photo
+- **Storage bucket**: `profile-photos`, public URLs (MVP)
+- **Photo constraints**: max 5 MB, jpeg/png/webp
+- **Username**: 3–30 chars, alphanumeric + underscores
+- **Age minimum**: 18
+- **No Zustand auth store** (deferred — server-first approach)
+- **Server Actions** for onboarding mutations (no API routes)
