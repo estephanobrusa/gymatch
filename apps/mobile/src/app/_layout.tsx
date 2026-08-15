@@ -19,11 +19,14 @@ export default function RootLayout() {
   // Handle the OAuth deep link (gymatch://#access_token=...) when the app is
   // opened from the browser callback, or already running in the background.
   useEffect(() => {
+    console.log("[DeepLink] listening for OAuth deep links");
     Linking.getInitialURL().then((url) => {
-      if (url) void createSessionFromUrl(url).catch(() => undefined);
+      console.log("[DeepLink] getInitialURL:", url ?? "(none)");
+      if (url) void createSessionFromUrl(url).catch((e) => console.log("[DeepLink] initial URL error:", e?.message));
     });
     const subscription = Linking.addEventListener("url", ({ url }) => {
-      void createSessionFromUrl(url).catch(() => undefined);
+      console.log("[DeepLink] url event:", url);
+      void createSessionFromUrl(url).catch((e) => console.log("[DeepLink] event error:", e?.message));
     });
     return () => subscription.remove();
   }, []);
