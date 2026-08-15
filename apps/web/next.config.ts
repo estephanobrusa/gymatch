@@ -1,3 +1,4 @@
+import path from "node:path";
 import type { NextConfig } from "next";
 import withSerwistInit from "@serwist/next";
 
@@ -13,6 +14,10 @@ const withSerwist = withSerwistInit({
 
 const nextConfig: NextConfig = {
   reactStrictMode: true,
+  // Standalone output for the production Docker image (apps/web/server.js).
+  output: "standalone",
+  // Trace files from the monorepo root so workspace packages are bundled.
+  outputFileTracingRoot: path.join(__dirname, "../../"),
   transpilePackages: ["@gymatch/config", "@gymatch/db", "@gymatch/types"],
 };
 
