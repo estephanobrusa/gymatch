@@ -2,9 +2,15 @@ packages:
   - "apps/*"
   - "packages/*"
 
-# ── pnpm 11 supply-chain defaults (can be tuned per project) ───────────────
-# minimumReleaseAge: 1440   # 1 day — default; delay brand-new packages
-# blockExoticSubdeps: true  # default; block transitive git/tarball deps
+# ── Supply-chain security (pnpm 11) ────────────────────────────────────────
+# Explicit config. Matches pnpm 11.21 defaults except minimumReleaseAgeStrict,
+# which is deliberately hardened to gate fresh-package installs.
+minimumReleaseAge: 1440          # block deps published < 1 day ago
+minimumReleaseAgeStrict: true    # prompt/fail instead of silently excluding
+blockExoticSubdeps: true         # no transitive git/tarball deps
+strictDepBuilds: true            # run builds only for approved packages
+verifyDepsBeforeRun: install     # verify dependencies before running scripts
+# allowBuilds: {}                # approve postinstall scripts here when pnpm asks
 
 # Hoisting (migrated from .npmrc — pnpm 11 only reads auth/registry there)
 publicHoistPattern:

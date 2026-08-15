@@ -83,6 +83,10 @@ SQLite is off the table: dangerous behavioral differences with Postgres, partial
 
 **Phase 1**: Next.js PWA. **Phase 2**: React Native (Expo). Validate the product first, then reuse the backend logic.
 
+### Supply-chain security
+
+pnpm 11 with hardened defaults configured explicitly in [`pnpm-workspace.yaml`](pnpm-workspace.yaml): `minimumReleaseAge: 1440` (blocks deps published < 1 day) with `minimumReleaseAgeStrict: true` (prompt instead of silent exclusion), `blockExoticSubdeps`, `strictDepBuilds`, and `verifyDepsBeforeRun: install`. Dependency `postinstall` scripts run only after explicit approval via `allowBuilds`.
+
 ---
 
 ## Environment variables
