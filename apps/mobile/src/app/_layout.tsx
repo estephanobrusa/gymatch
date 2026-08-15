@@ -1,3 +1,4 @@
+import { GestureHandlerRootView } from "react-native-gesture-handler";
 import "react-native-url-polyfill/auto";
 
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
@@ -36,18 +37,27 @@ export default function RootLayout() {
   }
 
   return (
-    <QueryClientProvider client={queryClient}>
-      <StatusBar style="light" />
-      <Stack screenOptions={{ headerShown: false }}>
-        <Stack.Screen name="(auth)/login" />
-        <Stack.Screen name="(tabs)" />
-      </Stack>
-      {session ? <Redirect href="/(tabs)" /> : <Redirect href="/(auth)/login" />}
-    </QueryClientProvider>
+    <GestureHandlerRootView style={styles.root}>
+      <QueryClientProvider client={queryClient}>
+        <StatusBar style="light" />
+        <Stack screenOptions={{ headerShown: false }}>
+          <Stack.Screen name="(auth)/login" />
+          <Stack.Screen name="(tabs)" />
+          <Stack.Screen
+            name="matches/[conversationId]"
+            options={{ animation: "slide_from_right" }}
+          />
+        </Stack>
+        {session ? <Redirect href="/(tabs)" /> : <Redirect href="/(auth)/login" />}
+      </QueryClientProvider>
+    </GestureHandlerRootView>
   );
 }
 
 const styles = StyleSheet.create({
+  root: {
+    flex: 1,
+  },
   splash: {
     flex: 1,
     alignItems: "center",
