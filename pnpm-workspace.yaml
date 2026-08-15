@@ -1,3 +1,12 @@
 packages:
   - "apps/*"
   - "packages/*"
+
+# ── pnpm 11 supply-chain defaults (can be tuned per project) ───────────────
+# minimumReleaseAge: 1440   # 1 day — default; delay brand-new packages
+# blockExoticSubdeps: true  # default; block transitive git/tarball deps
+
+# Hoisting (migrated from .npmrc — pnpm 11 only reads auth/registry there)
+publicHoistPattern:
+  - "*"
+shamefullyHoist: false

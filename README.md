@@ -24,7 +24,7 @@ Gymatch connects people looking for compatible training partners based on locati
 ## Quick start
 
 ```bash
-# 1. Install (pnpm ≥ 9, Node ≥ 20)
+# 1. Install (pnpm ≥ 11, Node ≥ 22)
 pnpm install
 
 # 2. Configure environment
