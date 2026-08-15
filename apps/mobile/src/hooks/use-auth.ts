@@ -1,7 +1,6 @@
 import { useCallback, useEffect, useState } from "react";
 import type { Session, User } from "@supabase/supabase-js";
 
-import { authSync } from "@/lib/api/client";
 import { signInWithGoogle } from "@/lib/auth/oauth";
 import { supabase } from "@/lib/supabase";
 
@@ -9,10 +8,10 @@ import { supabase } from "@/lib/supabase";
  * Auth state + actions bound to the Supabase client.
  *
  * - Listens to `onAuthStateChange` and exposes `session`/`user`/`loading`.
- * - `signInWithPassword` calls `POST /auth/sync` on success so the Prisma
- *   user row is guaranteed to exist before any other endpoint is used
- *   (mirrors the web's `syncUser` at the OAuth callback).
- * - `signInWithGoogle` runs the native OAuth flow (lib/auth/oauth).
+ * - `signInWithGoogle` runs the native OAuth flow (lib/auth/oauth), which
+ *   also calls `POST /auth/sync` so the Prisma user row is guaranteed to
+ *   exist before any other endpoint is used (mirrors the web's syncUser at
+ *   the OAuth callback).
  */
 export function useAuth() {
   const [session, setSession] = useState<Session | null>(null);
@@ -46,20 +45,6 @@ export function useAuth() {
     };
   }, []);
 
-  const signInWithPassword = useCallback(
-    async (email: string, password: string) => {
-      const { data, error } = await supabase.auth.signInWithPassword({
-        email,
-        password,
-      });
-      if (error) throw error;
-      if (data.session) {
-        await authSync(data.session.access_token);
-      }
-    },
-    []
-  );
-
   const signInWithGoogleOAuth = useCallback(() => signInWithGoogle(), []);
 
   const signOut = useCallback(async () => {
@@ -70,7 +55,6 @@ export function useAuth() {
     session,
     user,
     loading,
-    signInWithPassword,
     signInWithGoogle: signInWithGoogleOAuth,
     signOut,
   };

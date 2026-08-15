@@ -1,6 +1,7 @@
 import * as Linking from "expo-linking";
 import * as WebBrowser from "expo-web-browser";
 
+import { authSync } from "@/lib/api/client";
 import { supabase } from "@/lib/supabase";
 
 /**
@@ -32,6 +33,12 @@ export async function createSessionFromUrl(url: string): Promise<boolean> {
     refresh_token: refreshToken,
   });
   if (error) throw error;
+
+  // Ensure the Prisma user row exists before any other endpoint is used
+  // (mirrors the web's syncUser at the OAuth callback). Without this, the
+  // API layer cannot resolve the DB user and every request would fail.
+  await authSync(accessToken);
+
   return true;
 }
 
