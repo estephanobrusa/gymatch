@@ -4,8 +4,7 @@ import { ArrowLeft, MapPin } from "lucide-react";
 import { getUser } from "@/lib/auth";
 import { prismaAdmin } from "@/lib/auth/admin";
 import { getEventById } from "@/lib/events/queries";
-import { formatEventDate } from "@/lib/events/format";
-import { EVENT_TYPE_LABELS } from "@/lib/events/labels";
+import { formatEventDate, EVENT_TYPE_LABELS } from "@gymatch/core";
 import { RsvpButton } from "@/components/events/RsvpButton";
 import { DeleteEventButton } from "@/components/events/DeleteEventButton";
 

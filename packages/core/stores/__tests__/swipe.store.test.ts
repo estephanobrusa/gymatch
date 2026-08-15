@@ -1,6 +1,6 @@
 import { describe, it, expect, beforeEach, vi, afterEach } from "vitest";
 import { useSwipeStore } from "../swipe.store";
-import type { DiscoveryCard, SwipeResult } from "@/lib/swipe/types";
+import type { DiscoveryCard, SwipeResult } from "../../lib/swipe/types";
 
 // ── Fixtures ────────────────────────────────────────────────────────────────
 

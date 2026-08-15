@@ -3,8 +3,8 @@
 import { redirect } from "next/navigation";
 import { getUser } from "@/lib/auth";
 import { prismaAdmin } from "@/lib/auth/admin";
-import type { WeeklyRoutine, MuscleGroup } from "@prisma/client";
-import type { DayKey } from "./templates";
+import type { WeeklyRoutine } from "@prisma/client";
+import type { RoutineInput } from "@gymatch/core";
 
 /**
  * Returns the DB user id for the currently authenticated user.
@@ -22,8 +22,6 @@ async function resolveCurrentUserId(): Promise<string> {
   if (!dbUser) redirect("/login");
   return dbUser.id;
 }
-
-export type RoutineInput = Record<DayKey, MuscleGroup | null>;
 
 /**
  * Upserts the WeeklyRoutine for the current user.

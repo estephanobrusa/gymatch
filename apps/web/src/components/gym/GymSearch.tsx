@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { searchGymsAction, saveGymAction } from "@/lib/gym/actions";
-import type { GymSearchResult } from "@/lib/gym/actions";
+import type { GymSearchResult } from "@gymatch/core";
 
 // ── Types ──────────────────────────────────────────────────────────────────
 

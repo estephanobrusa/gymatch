@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { Heart, MessageCircle } from "lucide-react";
-import type { NotificationPreview } from "@/lib/notifications/actions";
+import type { NotificationPreview } from "@gymatch/core";
 
 // ── Helpers ───────────────────────────────────────────────────────────────
 

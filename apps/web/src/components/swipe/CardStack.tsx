@@ -1,9 +1,9 @@
 "use client";
 
 import { useEffect } from "react";
-import { useSwipeStore } from "@/stores/swipe.store";
+import { useSwipeStore } from "@gymatch/core";
 import { useDiscoveryFeed, useSwipeAction } from "@/lib/swipe/hooks";
-import type { SwipeDirection } from "@/lib/swipe/types";
+import type { SwipeDirection } from "@gymatch/core";
 import { SwipeCard } from "./SwipeCard";
 
 const MAX_VISIBLE_CARDS = 3;

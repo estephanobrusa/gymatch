@@ -44,7 +44,7 @@ import {
 } from "../actions";
 import { getUser } from "@/lib/auth";
 import { prismaAdmin } from "@/lib/auth/admin";
-import type { ScheduleSlotInput } from "../types";
+import type { ScheduleSlotInput } from "@gymatch/core";
 
 const mockGetUser = getUser as Mock;
 const mockUserFindUnique = (prismaAdmin.user as unknown as { findUnique: Mock }).findUnique;

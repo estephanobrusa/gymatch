@@ -1,0 +1,9 @@
+{
+  "extends": "@gymatch/config/tsconfig.base.json",
+  "compilerOptions": {
+    "noEmit": true,
+    "types": ["node"]
+  },
+  "include": ["index.ts", "lib/**/*.ts", "stores/**/*.ts"],
+  "exclude": ["node_modules"]
+}

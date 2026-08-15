@@ -7,7 +7,7 @@ import { formatDistanceToNow } from "date-fns";
 import type { RealtimeChannel } from "@supabase/supabase-js";
 import { createClient } from "@/lib/supabase/client";
 import { sendMessageAction, markAsReadAction } from "@/lib/chat/actions";
-import type { ChatMessage } from "@/lib/chat/types";
+import type { ChatMessage } from "@gymatch/core";
 import { ReportModal } from "@/components/moderation/ReportModal";
 import { BlockConfirmDialog } from "@/components/moderation/BlockConfirmDialog";
 import { UnmatchConfirmDialog } from "@/components/moderation/UnmatchConfirmDialog";

@@ -36,7 +36,7 @@ import {
   deleteEventAction,
   toggleEventRsvpAction,
 } from "../actions";
-import type { EventInput } from "../types";
+import type { EventInput } from "@gymatch/core";
 import { getUser } from "@/lib/auth";
 import { prismaAdmin } from "@/lib/auth/admin";
 import type { EventType } from "@prisma/client";

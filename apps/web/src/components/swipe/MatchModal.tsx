@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { useSwipeStore } from "@/stores/swipe.store";
+import { useSwipeStore } from "@gymatch/core";
 import { getConversationIdAction } from "@/lib/chat/actions";
 import {
   Dialog,

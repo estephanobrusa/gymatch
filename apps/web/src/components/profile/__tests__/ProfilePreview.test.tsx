@@ -3,7 +3,7 @@
 import { describe, it, expect } from "vitest";
 import { render, screen, fireEvent } from "@testing-library/react";
 import { ProfilePreview } from "../ProfilePreview";
-import type { DiscoveryCard } from "@/lib/swipe/types";
+import type { DiscoveryCard } from "@gymatch/core";
 
 const card: DiscoveryCard = {
   id: "user-1",

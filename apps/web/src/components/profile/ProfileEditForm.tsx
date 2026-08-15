@@ -3,9 +3,8 @@
 import { useState, useRef } from "react";
 import { GymSearch } from "@/components/gym/GymSearch";
 import { updateProfileAction, updateScheduleSlotsAction } from "@/lib/profile/actions";
-import type { ScheduleSlotInput } from "@/lib/profile/types";
-import type { ProfileUser } from "@/lib/profile/types";
-import { DISCIPLINE_LABELS, DISCIPLINE_VALUES as DISCIPLINE_OPTIONS } from "@/lib/disciplines";
+import type { ScheduleSlotInput, ProfileUser } from "@gymatch/core";
+import { DISCIPLINE_LABELS, DISCIPLINE_VALUES as DISCIPLINE_OPTIONS } from "@gymatch/core";
 import type { DayOfWeek, Discipline, ExperienceLevel, FitnessGoal } from "@prisma/client";
 
 // ── Labels ────────────────────────────────────────────────────────────────

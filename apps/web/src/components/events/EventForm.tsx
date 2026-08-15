@@ -3,8 +3,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { createEventAction, updateEventAction } from "@/lib/events/actions";
-import { EVENT_TYPE_LABELS } from "@/lib/events/labels";
-import { DISCIPLINE_LABELS, DISCIPLINE_VALUES } from "@/lib/disciplines";
+import { EVENT_TYPE_LABELS, DISCIPLINE_LABELS, DISCIPLINE_VALUES } from "@gymatch/core";
 import type { Discipline, EventType } from "@prisma/client";
 
 // ── Labels ────────────────────────────────────────────────────────────────

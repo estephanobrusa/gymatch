@@ -3,12 +3,7 @@
 import { redirect } from "next/navigation";
 import { getUser } from "@/lib/auth";
 import { prismaAdmin } from "@/lib/auth/admin";
-
-export type GymSearchResult = {
-  placeId: string;
-  name: string;
-  address: string;
-};
+import type { GymSearchResult } from "@gymatch/core";
 
 type PlacesApiPlace = {
   id: string;

@@ -3,19 +3,7 @@
 import { redirect } from "next/navigation";
 import { getUser } from "@/lib/auth";
 import { prismaAdmin } from "@/lib/auth/admin";
-import type { NotificationType } from "@prisma/client";
-
-// ── Types ─────────────────────────────────────────────────────────────────
-
-export type NotificationPreview = {
-  id: string;
-  type: NotificationType;
-  actor: { id: string; name: string; photoUrl: string | null } | null;
-  matchId: string | null;
-  conversationId: string | null;
-  read: boolean;
-  createdAt: string;
-};
+import type { NotificationPreview } from "@gymatch/core";
 
 /**
  * Returns the DB user id for the currently authenticated user.

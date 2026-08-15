@@ -2,9 +2,9 @@
 
 import { useState } from "react";
 import { Eye } from "lucide-react";
-import type { DiscoveryCard } from "@/lib/swipe/types";
+import type { DiscoveryCard } from "@gymatch/core";
 import { ProfileDrawer } from "@/components/swipe/ProfileDrawer";
-import { DISCIPLINE_LABELS } from "@/lib/disciplines";
+import { DISCIPLINE_LABELS } from "@gymatch/core";
 import type { Discipline } from "@prisma/client";
 
 interface ProfilePreviewProps {

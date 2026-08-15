@@ -2,7 +2,7 @@
 
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { render, screen } from "@testing-library/react";
-import type { DiscoveryCard } from "@/lib/swipe/types";
+import type { DiscoveryCard } from "@gymatch/core";
 
 // ── Mock swipe store ──────────────────────────────────────────────────────
 
@@ -20,9 +20,13 @@ let mockState: StoreState = {
   }),
 };
 
-vi.mock("@/stores/swipe.store", () => ({
-  useSwipeStore: vi.fn((selector: (s: StoreState) => unknown) => selector(mockState)),
-}));
+vi.mock("@gymatch/core", async (importOriginal) => {
+  const actual = await importOriginal<typeof import("@gymatch/core")>();
+  return {
+    ...actual,
+    useSwipeStore: vi.fn((selector: (s: StoreState) => unknown) => selector(mockState)),
+  };
+});
 
 // ── Mock SwipeCard to make testing simpler ────────────────────────────────
 // We render a div with data-testid="swipe-card" and data-name so tests can

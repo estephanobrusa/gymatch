@@ -4,7 +4,7 @@ import { redirect } from "next/navigation";
 import { getUser } from "@/lib/auth";
 import { prismaAdmin } from "@/lib/auth/admin";
 import { sendPushToUser } from "@/lib/push/actions";
-import type { ChatMessage, ConversationPage, MatchPreview } from "./types";
+import type { ChatMessage, ConversationPage, MatchPreview } from "@gymatch/core";
 
 const PAGE_SIZE = 20;
 

@@ -2,7 +2,7 @@
 
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { render, screen, act, waitFor } from "@testing-library/react";
-import type { DiscoveryCard } from "@/lib/swipe/types";
+import type { DiscoveryCard } from "@gymatch/core";
 
 // ── Mock useDrag ──────────────────────────────────────────────────────────
 // We control useDrag from outside so we can simulate drag state and trigger
@@ -31,11 +31,15 @@ vi.mock("@/hooks/use-drag", () => ({
 // ── Mock swipe store ──────────────────────────────────────────────────────
 
 const mockSwipe = vi.fn();
-vi.mock("@/stores/swipe.store", () => ({
-  useSwipeStore: vi.fn((selector: (s: { swipe: typeof mockSwipe; isAnimating: boolean }) => unknown) =>
-    selector({ swipe: mockSwipe, isAnimating: false })
-  ),
-}));
+vi.mock("@gymatch/core", async (importOriginal) => {
+  const actual = await importOriginal<typeof import("@gymatch/core")>();
+  return {
+    ...actual,
+    useSwipeStore: vi.fn((selector: (s: { swipe: typeof mockSwipe; isAnimating: boolean }) => unknown) =>
+      selector({ swipe: mockSwipe, isAnimating: false })
+    ),
+  };
+});
 
 // ── Mock moderation actions (prevent Prisma from instantiating in tests) ──
 

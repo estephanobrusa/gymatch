@@ -1,5 +1,5 @@
-import type { Discipline, EventType } from "@prisma/client";
-import type { Prisma } from "@prisma/client";
+import type { EventType } from "@gymatch/db";
+import type { Discipline, Prisma } from "@prisma/client";
 
 /**
  * Input shape for creating/updating an event, as submitted by the client.
@@ -62,3 +62,23 @@ export type EventRsvpWithUser = Prisma.EventRsvpGetPayload<{
     };
   };
 }>;
+
+/**
+ * A paginated slice of events for the filtered feed.
+ */
+export type EventFeed = {
+  events: EventWithRelations[];
+  nextCursor: string | null;
+};
+
+/**
+ * Input shape for the filtered event feed query.
+ */
+export interface EventFilterInput {
+  userId: string;
+  nearMe?: boolean;
+  disciplines?: Discipline[];
+  types?: EventType[];
+  limit?: number;
+  cursor?: string;
+}

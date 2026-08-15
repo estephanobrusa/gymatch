@@ -5,7 +5,7 @@ import Link from "next/link";
 import { ArrowLeft } from "lucide-react";
 import { saveFitnessProfileAction } from "@/lib/auth/actions";
 import type { Discipline, FitnessGoal, ExperienceLevel } from "@prisma/client";
-import { DISCIPLINE_VALUES, DISCIPLINE_LABELS } from "@/lib/disciplines";
+import { DISCIPLINE_VALUES, DISCIPLINE_LABELS } from "@gymatch/core";
 
 // ── Constants ─────────────────────────────────────────────────────────────
 

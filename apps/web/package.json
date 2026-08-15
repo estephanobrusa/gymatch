@@ -17,6 +17,7 @@
   },
   "dependencies": {
     "@gymatch/config": "workspace:*",
+    "@gymatch/core": "workspace:*",
     "@gymatch/db": "workspace:*",
     "@prisma/client": "^5.22.0",
     "@radix-ui/react-alert-dialog": "^1.1.15",

@@ -7,10 +7,8 @@ import {
   getFilteredEvents,
   getMyEvents,
 } from "@/lib/events/queries";
-import { formatEventDate } from "@/lib/events/format";
-import { EVENT_TYPE_LABELS } from "@/lib/events/labels";
-import { DISCIPLINE_LABELS, DISCIPLINE_VALUES } from "@/lib/disciplines";
-import type { EventWithRelations } from "@/lib/events/types";
+import { formatEventDate, EVENT_TYPE_LABELS, DISCIPLINE_LABELS, DISCIPLINE_VALUES } from "@gymatch/core";
+import type { EventWithRelations } from "@gymatch/core";
 
 // ── Constants ─────────────────────────────────────────────────────────────
 

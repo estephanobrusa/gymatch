@@ -3,7 +3,7 @@
 import { getUser } from "@/lib/auth";
 import { prismaAdmin } from "@/lib/auth/admin";
 import { createClient } from "@/lib/supabase/server";
-import type { ScheduleSlotInput } from "./types";
+import type { ScheduleSlotInput } from "@gymatch/core";
 import { DayOfWeek } from "@prisma/client";
 import type {
   Discipline,

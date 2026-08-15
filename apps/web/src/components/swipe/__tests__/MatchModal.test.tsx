@@ -2,7 +2,7 @@
 
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { render, screen, fireEvent } from "@testing-library/react";
-import type { SwipeResult } from "@/lib/swipe/types";
+import type { SwipeResult } from "@gymatch/core";
 
 // ── Mock swipe store ──────────────────────────────────────────────────────
 
@@ -16,9 +16,13 @@ let mockState: StoreState = {
   clearMatch: vi.fn(),
 };
 
-vi.mock("@/stores/swipe.store", () => ({
-  useSwipeStore: vi.fn((selector: (s: StoreState) => unknown) => selector(mockState)),
-}));
+vi.mock("@gymatch/core", async (importOriginal) => {
+  const actual = await importOriginal<typeof import("@gymatch/core")>();
+  return {
+    ...actual,
+    useSwipeStore: vi.fn((selector: (s: StoreState) => unknown) => selector(mockState)),
+  };
+});
 
 // ── Mock ShadCN Dialog to keep tests deterministic ────────────────────────
 // Radix Dialog uses portals + animations that complicate jsdom; we mock the

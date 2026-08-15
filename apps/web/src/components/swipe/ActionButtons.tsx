@@ -1,10 +1,9 @@
 "use client";
 
 import { X, Heart, Star } from "lucide-react";
-import { useSwipeStore } from "@/stores/swipe.store";
+import { useSwipeStore, isFeatureEnabled } from "@gymatch/core";
 import { useSwipeAction } from "@/lib/swipe/hooks";
-import { isFeatureEnabled } from "@/lib/swipe/feature-flags";
-import type { SwipeDirection } from "@/lib/swipe/types";
+import type { SwipeDirection } from "@gymatch/core";
 
 export function ActionButtons() {
   const isAnimating = useSwipeStore((s) => s.isAnimating);

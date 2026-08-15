@@ -30,7 +30,7 @@ import {
 } from "../queries";
 import { getUser } from "@/lib/auth";
 import { prismaAdmin } from "@/lib/auth/admin";
-import type { EventWithRelations } from "../types";
+import type { EventWithRelations } from "@gymatch/core";
 
 const mockFindMany = (prismaAdmin.event as unknown as { findMany: Mock }).findMany;
 const mockFindUnique = (prismaAdmin.event as unknown as { findUnique: Mock }).findUnique;

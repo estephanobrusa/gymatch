@@ -1,8 +1,8 @@
 import { useEffect } from "react";
 import { useInfiniteQuery, useMutation } from "@tanstack/react-query";
-import { useSwipeStore } from "@/stores/swipe.store";
+import { useSwipeStore } from "@gymatch/core";
 import { getDiscoveryFeedAction, recordSwipe } from "./actions";
-import type { SwipeDirection, SwipeResult } from "./types";
+import type { SwipeDirection, SwipeResult } from "@gymatch/core";
 
 // ── useDiscoveryFeed ──────────────────────────────────────────────────────
 

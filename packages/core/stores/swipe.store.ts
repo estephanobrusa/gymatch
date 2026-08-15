@@ -1,8 +1,8 @@
 import { create } from "zustand";
 import { immer } from "zustand/middleware/immer";
 import { current } from "immer";
-import { isFeatureEnabled } from "@/lib/swipe/feature-flags";
-import type { DiscoveryCard, SwipeDirection, SwipeResult } from "@/lib/swipe/types";
+import { isFeatureEnabled } from "../lib/swipe/feature-flags";
+import type { DiscoveryCard, SwipeDirection, SwipeResult } from "../lib/swipe/types";
 
 interface SwipeStore {
   // State

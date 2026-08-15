@@ -1,7 +1,11 @@
 import { prismaAdmin } from "@/lib/auth/admin";
-import { computeAge, passesAgeFilter } from "./age-filter";
-import { isScheduleCompatible, type ScheduleContext } from "@/lib/profile/compatibility";
-import type { DiscoveryCard } from "./types";
+import {
+  computeAge,
+  passesAgeFilter,
+  isScheduleCompatible,
+  type ScheduleContext,
+} from "@gymatch/core";
+import type { DiscoveryCard } from "@gymatch/core";
 
 /**
  * Fetches a cursor-paginated discovery feed for the given user.

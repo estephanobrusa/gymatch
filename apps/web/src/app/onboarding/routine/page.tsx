@@ -4,7 +4,7 @@ import { useState } from "react";
 import Link from "next/link";
 import { ArrowLeft } from "lucide-react";
 import { saveRoutineAction } from "@/lib/routine/actions";
-import { TEMPLATES, type TemplateName, type RoutineTemplateMap } from "@/lib/routine/templates";
+import { TEMPLATES, type TemplateName, type RoutineTemplateMap } from "@gymatch/core";
 
 // ── Constants ─────────────────────────────────────────────────────────────
 

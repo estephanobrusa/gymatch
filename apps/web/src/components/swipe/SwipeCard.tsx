@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import type { DiscoveryCard, SwipeDirection } from "@/lib/swipe/types";
+import type { DiscoveryCard, SwipeDirection } from "@gymatch/core";
 import { useDrag } from "@/hooks/use-drag";
 import { ReportModal } from "@/components/moderation/ReportModal";
 import { BlockConfirmDialog } from "@/components/moderation/BlockConfirmDialog";

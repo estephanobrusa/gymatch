@@ -16,7 +16,7 @@ vi.mock("../actions", () => ({
 // ── Production imports ─────────────────────────────────────────────────────
 
 import { getDiscoveryFeedAction, recordSwipe } from "../actions";
-import { useSwipeStore } from "@/stores/swipe.store";
+import { useSwipeStore } from "@gymatch/core";
 import { useDiscoveryFeed, useSwipeAction, useMatchNotification } from "../hooks";
 
 const mockGetDiscoveryFeedAction = getDiscoveryFeedAction as Mock;

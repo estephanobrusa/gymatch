@@ -3,8 +3,8 @@
 import { getUser } from "@/lib/auth";
 import { prismaAdmin } from "@/lib/auth/admin";
 import type { Discipline, EventType } from "@prisma/client";
-import { DISCIPLINE_VALUES } from "@/lib/disciplines";
-import type { EventInput } from "./types";
+import { DISCIPLINE_VALUES } from "@gymatch/core";
+import type { EventInput } from "@gymatch/core";
 
 // ── Constants ────────────────────────────────────────────────────────────────
 

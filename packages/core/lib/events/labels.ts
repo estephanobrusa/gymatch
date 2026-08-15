@@ -1,4 +1,4 @@
-import type { EventType } from "@prisma/client";
+import type { EventType } from "@gymatch/db";
 
 // ── Display labels (server-safe, no client deps) ──────────────────────────
 

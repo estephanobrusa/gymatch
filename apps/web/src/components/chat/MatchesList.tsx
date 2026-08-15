@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { formatDistanceToNow } from "date-fns";
-import type { MatchPreview } from "@/lib/chat/types";
+import type { MatchPreview } from "@gymatch/core";
 
 interface Props {
   matches: MatchPreview[];

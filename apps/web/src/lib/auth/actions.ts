@@ -4,17 +4,8 @@ import { redirect } from "next/navigation";
 import { getUser } from "@/lib/auth";
 import { prismaAdmin } from "@/lib/auth/admin";
 import { createClient } from "@/lib/supabase/server";
-import type { Discipline, FitnessGoal, ExperienceLevel, Schedule } from "@prisma/client";
-
-export type FitnessProfileInput = {
-  disciplines?: Discipline[];
-  fitnessGoals?: FitnessGoal[];
-  experienceLevel?: ExperienceLevel;
-  weeklyFrequency?: number;
-  schedules?: Schedule[];
-};
-
-export type ActionResult = { success: true } | { error: string };
+import type { Schedule } from "@prisma/client";
+import type { FitnessProfileInput, ActionResult } from "@gymatch/core";
 
 export async function signOut(): Promise<void> {
   const supabase = await createClient();

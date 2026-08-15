@@ -11,8 +11,8 @@ import { PrivacyToggles } from "@/components/profile/PrivacyToggles";
 import { PushSettings } from "@/components/push/PushSettings";
 import { BlockedUsersList } from "@/components/moderation/BlockedUsersList";
 import { getBlockedUsers } from "@/lib/moderation/queries";
-import type { DiscoveryCard } from "@/lib/swipe/types";
-import { DISCIPLINE_LABELS } from "@/lib/disciplines";
+import type { DiscoveryCard } from "@gymatch/core";
+import { DISCIPLINE_LABELS } from "@gymatch/core";
 
 // ── Display labels (server-safe, no client deps) ──────────────────────────
 

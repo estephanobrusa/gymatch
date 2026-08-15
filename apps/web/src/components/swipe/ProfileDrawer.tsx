@@ -2,8 +2,8 @@
 
 import { useState } from "react";
 import { X, MapPin, Dumbbell, Target, Star, CalendarClock } from "lucide-react";
-import type { DiscoveryCard } from "@/lib/swipe/types";
-import { DISCIPLINE_LABELS as BASE_DISCIPLINE_LABELS } from "@/lib/disciplines";
+import type { DiscoveryCard } from "@gymatch/core";
+import { DISCIPLINE_LABELS as BASE_DISCIPLINE_LABELS } from "@gymatch/core";
 
 const DISCIPLINE_LABELS: Record<string, string> = { ...BASE_DISCIPLINE_LABELS, GYM: "Gym" };
 

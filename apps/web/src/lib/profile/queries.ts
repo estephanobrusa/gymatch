@@ -1,5 +1,5 @@
 import { prismaAdmin } from "@/lib/auth/admin";
-import type { ProfileUser } from "./types";
+import type { ProfileUser } from "@gymatch/core";
 
 /**
  * Fetches the full profile shape for a user identified by their Supabase auth ID.

@@ -1,8 +1,8 @@
 import { getUser } from "@/lib/auth";
 import { prismaAdmin } from "@/lib/auth/admin";
-import type { Discipline, EventType, Prisma } from "@prisma/client";
-import type { EventWithRelations } from "./types";
-import { isNearGym } from "./distance";
+import type { Discipline, Prisma } from "@prisma/client";
+import type { EventWithRelations, EventFeed, EventFilterInput } from "@gymatch/core";
+import { isNearGym } from "@gymatch/core";
 
 const LIST_INCLUDE = {
   creator: {
@@ -124,20 +124,6 @@ export async function getEventById(eventId: string) {
 }
 
 // ── Filtered feed ───────────────────────────────────────────────────────────
-
-export type EventFeed = {
-  events: EventWithRelations[];
-  nextCursor: string | null;
-};
-
-export interface EventFilterInput {
-  userId: string;
-  nearMe?: boolean;
-  disciplines?: Discipline[];
-  types?: EventType[];
-  limit?: number;
-  cursor?: string;
-}
 
 /**
  * Slices a page of events (limit+1 fetched) into a feed + hasMore cursor.

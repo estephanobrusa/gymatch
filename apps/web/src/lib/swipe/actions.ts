@@ -4,10 +4,9 @@ import { redirect } from "next/navigation";
 import { getUser } from "@/lib/auth";
 import { prismaAdmin } from "@/lib/auth/admin";
 import { sendPushToUser } from "@/lib/push/actions";
-import { isFeatureEnabled } from "./feature-flags";
+import { isFeatureEnabled, FeatureFlagError } from "@gymatch/core";
 import { getDiscoveryFeed } from "./queries";
-import { FeatureFlagError } from "./errors";
-import type { DiscoveryCard, SwipeDirection, SwipeResult } from "./types";
+import type { DiscoveryCard, SwipeDirection, SwipeResult } from "@gymatch/core";
 
 /**
  * Records a swipe from the currently authenticated user to `toId`.
