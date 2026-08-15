@@ -5,6 +5,7 @@ import { getUser } from "@/lib/auth";
 import { prismaAdmin } from "@/lib/auth/admin";
 import type { WeeklyRoutine } from "@prisma/client";
 import type { RoutineInput } from "@gymatch/core";
+import { saveRoutine, getRoutine } from "./service";
 
 /**
  * Returns the DB user id for the currently authenticated user.
@@ -29,22 +30,7 @@ async function resolveCurrentUserId(): Promise<string> {
  */
 export async function saveRoutineAction(data: RoutineInput): Promise<void> {
   const userId = await resolveCurrentUserId();
-
-  const payload = {
-    mon: data.mon,
-    tue: data.tue,
-    wed: data.wed,
-    thu: data.thu,
-    fri: data.fri,
-    sat: data.sat,
-    sun: data.sun,
-  };
-
-  await prismaAdmin.weeklyRoutine.upsert({
-    where: { userId },
-    create: { userId, ...payload },
-    update: payload,
-  });
+  await saveRoutine(userId, data);
 }
 
 /**
@@ -52,8 +38,5 @@ export async function saveRoutineAction(data: RoutineInput): Promise<void> {
  */
 export async function getRoutineAction(): Promise<WeeklyRoutine | null> {
   const userId = await resolveCurrentUserId();
-
-  return prismaAdmin.weeklyRoutine.findUnique({
-    where: { userId },
-  });
+  return getRoutine(userId);
 }

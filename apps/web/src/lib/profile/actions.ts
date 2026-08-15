@@ -5,49 +5,10 @@ import { prismaAdmin } from "@/lib/auth/admin";
 import { createClient } from "@/lib/supabase/server";
 import type { ScheduleSlotInput } from "@gymatch/core";
 import { DayOfWeek } from "@prisma/client";
-import type {
-  Discipline,
-  ExperienceLevel,
-  FitnessGoal,
-  Schedule,
-} from "@prisma/client";
+import { updateProfile } from "./service";
+import type { ProfileUpdateInput } from "./service";
 
-export type ProfileUpdateInput = {
-  bio?: string;
-  disciplines?: Discipline[];
-  fitnessGoals?: FitnessGoal[];
-  experienceLevel?: ExperienceLevel;
-  weeklyFrequency?: number;
-  schedule?: Schedule[];
-  minAge?: number;
-  maxAge?: number;
-};
-
-/**
- * Validates the age range fields when present.
- * Returns an error string if invalid, or null if valid.
- */
-function validateAgeRange(
-  minAge: number | undefined,
-  maxAge: number | undefined
-): string | null {
-  if (minAge === undefined && maxAge === undefined) return null;
-
-  const resolvedMin = minAge ?? 18;
-  const resolvedMax = maxAge ?? 50;
-
-  if (minAge !== undefined && minAge < 18) {
-    return "minAge must be at least 18";
-  }
-  if (maxAge !== undefined && maxAge > 99) {
-    return "maxAge must be at most 99";
-  }
-  if (resolvedMin >= resolvedMax) {
-    return "minAge must be less than maxAge";
-  }
-
-  return null;
-}
+export type { ProfileUpdateInput };
 
 /**
  * Updates the authenticated user's profile fields (partial update).
@@ -56,10 +17,6 @@ function validateAgeRange(
 export async function updateProfileAction(
   data: ProfileUpdateInput
 ): Promise<{ success: true } | { error: string }> {
-  // Validate age range before hitting the DB
-  const ageError = validateAgeRange(data.minAge, data.maxAge);
-  if (ageError) return { error: ageError };
-
   const user = await getUser();
   if (!user) return { error: "Unauthenticated" };
 
@@ -69,21 +26,7 @@ export async function updateProfileAction(
   });
   if (!dbUser) return { error: "User not found" };
 
-  await prismaAdmin.user.update({
-    where: { id: dbUser.id },
-    data: {
-      ...(data.bio !== undefined && { bio: data.bio }),
-      ...(data.disciplines !== undefined && { disciplines: { set: data.disciplines } }),
-      ...(data.fitnessGoals !== undefined && { fitnessGoals: { set: data.fitnessGoals } }),
-      ...(data.experienceLevel !== undefined && { experienceLevel: data.experienceLevel }),
-      ...(data.weeklyFrequency !== undefined && { weeklyFrequency: data.weeklyFrequency }),
-      ...(data.schedule !== undefined && { schedule: { set: data.schedule } }),
-      ...(data.minAge !== undefined && { minAge: data.minAge }),
-      ...(data.maxAge !== undefined && { maxAge: data.maxAge }),
-    },
-  });
-
-  return { success: true };
+  return updateProfile(dbUser.id, data);
 }
 
 /**

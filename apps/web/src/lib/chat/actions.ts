@@ -4,9 +4,14 @@ import { redirect } from "next/navigation";
 import { getUser } from "@/lib/auth";
 import { prismaAdmin } from "@/lib/auth/admin";
 import { sendPushToUser } from "@/lib/push/actions";
+import {
+  getMatchesForUser,
+  getConversationMessages,
+  sendMessageForUser,
+  markConversationReadForUser,
+  unmatchForUser,
+} from "./service";
 import type { ChatMessage, ConversationPage, MatchPreview } from "@gymatch/core";
-
-const PAGE_SIZE = 20;
 
 export type ActionResult = { success: true } | { error: string };
 
@@ -34,88 +39,7 @@ async function resolveCurrentUserId(): Promise<string> {
  */
 export async function getMatchesAction(): Promise<MatchPreview[]> {
   const currentUserId = await resolveCurrentUserId();
-
-  const matches = await prismaAdmin.match.findMany({
-    where: {
-      OR: [{ userAId: currentUserId }, { userBId: currentUserId }],
-      AND: [
-        // Block filter: exclude matches where a Block exists in either direction
-        { userA: { blocksGiven:    { none: { toId:   currentUserId } } } },
-        { userA: { blocksReceived: { none: { fromId: currentUserId } } } },
-        { userB: { blocksGiven:    { none: { toId:   currentUserId } } } },
-        { userB: { blocksReceived: { none: { fromId: currentUserId } } } },
-        // Ban filter: exclude matches where either participant is banned
-        { userA: { bannedAt: null } },
-        { userB: { bannedAt: null } },
-      ],
-    },
-    include: {
-      userA: {
-        select: {
-          id: true,
-          name: true,
-          photos: { select: { url: true, position: true }, orderBy: { position: "asc" }, take: 1 },
-        },
-      },
-      userB: {
-        select: {
-          id: true,
-          name: true,
-          photos: { select: { url: true, position: true }, orderBy: { position: "asc" }, take: 1 },
-        },
-      },
-      conversations: {
-        take: 1,
-        orderBy: { createdAt: "desc" },
-        include: {
-          messages: {
-            orderBy: { createdAt: "desc" },
-            take: 1,
-          },
-        },
-      },
-    },
-    orderBy: { createdAt: "desc" },
-  });
-
-  const previews: MatchPreview[] = [];
-
-  for (const match of matches) {
-    const conversation = match.conversations[0];
-    if (!conversation) continue; // skip matches with no conversation (shouldn't happen)
-
-    const matchedUser = match.userAId === currentUserId ? match.userB : match.userA;
-    const lastMsg = conversation.messages[0] ?? null;
-
-    // Unread: messages from the other user that haven't been read yet
-    const unreadCount = await prismaAdmin.message.count({
-      where: {
-        conversationId: conversation.id,
-        senderId: { not: currentUserId },
-        readAt: null,
-      },
-    });
-
-    previews.push({
-      matchId: match.id,
-      conversationId: conversation.id,
-      matchedUser: {
-        id: matchedUser.id,
-        name: matchedUser.name,
-        photoUrl: matchedUser.photos[0]?.url ?? null,
-      },
-      lastMessage: lastMsg
-        ? {
-            body: lastMsg.body,
-            createdAt: lastMsg.createdAt.toISOString(),
-            senderId: lastMsg.senderId,
-          }
-        : null,
-      unreadCount,
-    });
-  }
-
-  return previews;
+  return getMatchesForUser(currentUserId);
 }
 
 /**
@@ -130,46 +54,9 @@ export async function getMessagesAction(
   cursor?: string
 ): Promise<ConversationPage> {
   const currentUserId = await resolveCurrentUserId();
-
-  // Auth check: ensure current user is part of this conversation's match
-  const conversation = await prismaAdmin.conversation.findUnique({
-    where: { id: conversationId },
-    include: {
-      match: { select: { userAId: true, userBId: true } },
-    },
-  });
-
-  if (
-    !conversation ||
-    (conversation.match.userAId !== currentUserId &&
-      conversation.match.userBId !== currentUserId)
-  ) {
-    redirect("/matches");
-  }
-
-  const messages = await prismaAdmin.message.findMany({
-    where: {
-      conversationId,
-      ...(cursor ? { createdAt: { lt: new Date(cursor) } } : {}),
-    },
-    orderBy: { createdAt: "asc" },
-    take: PAGE_SIZE + 1,
-  });
-
-  const hasMore = messages.length > PAGE_SIZE;
-  const page = hasMore ? messages.slice(0, PAGE_SIZE) : messages;
-  const nextCursor = hasMore ? page[page.length - 1]?.createdAt.toISOString() ?? null : null;
-
-  return {
-    messages: page.map((m) => ({
-      id: m.id,
-      conversationId: m.conversationId,
-      senderId: m.senderId,
-      body: m.body,
-      createdAt: m.createdAt.toISOString(),
-    })),
-    nextCursor,
-  };
+  const page = await getConversationMessages(currentUserId, conversationId, cursor);
+  if (!page) redirect("/matches");
+  return page;
 }
 
 /**
@@ -181,71 +68,18 @@ export async function sendMessageAction(
   body: string
 ): Promise<ChatMessage> {
   const currentUserId = await resolveCurrentUserId();
-
-  const trimmed = body.trim();
-  if (!trimmed) {
-    throw new Error("Message body cannot be empty.");
-  }
-
-  // Auth check
-  const conversation = await prismaAdmin.conversation.findUnique({
-    where: { id: conversationId },
-    include: {
-      match: { select: { userAId: true, userBId: true } },
-    },
-  });
-
-  if (
-    !conversation ||
-    (conversation.match.userAId !== currentUserId &&
-      conversation.match.userBId !== currentUserId)
-  ) {
-    throw new Error("Unauthorized.");
-  }
-
-  // Determine the other participant
-  const otherUserId =
-    conversation.match.userAId === currentUserId
-      ? conversation.match.userBId
-      : conversation.match.userAId;
-
-  // Block guard: reject if a Block exists in either direction
-  const block = await prismaAdmin.block.findFirst({
-    where: {
-      OR: [
-        { fromId: currentUserId, toId: otherUserId },
-        { fromId: otherUserId,   toId: currentUserId },
-      ],
-    },
-  });
-
-  if (block) {
-    throw new Error("Blocked.");
-  }
-
-  const message = await prismaAdmin.message.create({
-    data: {
-      conversationId,
-      senderId: currentUserId,
-      body: trimmed,
-    },
-  });
-
-  // Notify the other participant about the new message
-  await prismaAdmin.notification.create({
-    data: {
-      userId: otherUserId,
-      type: "NEW_MESSAGE",
-      actorId: currentUserId,
-      conversationId,
-    },
-  });
+  const { message, otherUserId } = await sendMessageForUser(
+    currentUserId,
+    conversationId,
+    body
+  );
 
   // Fire-and-forget push to the other participant
   const sender = await prismaAdmin.user.findUnique({
     where: { id: currentUserId },
     select: { name: true },
   });
+  const trimmed = body.trim();
   const messagePreview = trimmed.length > 60 ? trimmed.slice(0, 57) + "..." : trimmed;
   sendPushToUser(otherUserId, {
     title: "New message",
@@ -253,13 +87,7 @@ export async function sendMessageAction(
     url: `/matches/${conversationId}`,
   }).catch(() => {});
 
-  return {
-    id: message.id,
-    conversationId: message.conversationId,
-    senderId: message.senderId,
-    body: message.body,
-    createdAt: message.createdAt.toISOString(),
-  };
+  return message;
 }
 
 /**
@@ -269,29 +97,7 @@ export async function sendMessageAction(
  */
 export async function markAsReadAction(conversationId: string): Promise<void> {
   const currentUserId = await resolveCurrentUserId();
-
-  // Verify participation
-  const conversation = await prismaAdmin.conversation.findUnique({
-    where: { id: conversationId },
-    include: { match: { select: { userAId: true, userBId: true } } },
-  });
-
-  if (
-    !conversation ||
-    (conversation.match.userAId !== currentUserId &&
-      conversation.match.userBId !== currentUserId)
-  ) {
-    return;
-  }
-
-  await prismaAdmin.message.updateMany({
-    where: {
-      conversationId,
-      senderId: { not: currentUserId },
-      readAt: null,
-    },
-    data: { readAt: new Date() },
-  });
+  await markConversationReadForUser(currentUserId, conversationId);
 }
 
 /**
@@ -341,26 +147,5 @@ export async function unmatchAction(matchId: string): Promise<ActionResult> {
   });
   if (!dbUser) return { error: "auth" };
 
-  const currentUserId = dbUser.id;
-
-  try {
-    const match = await prismaAdmin.match.findUnique({
-      where: { id: matchId },
-      select: { id: true, userAId: true, userBId: true },
-    });
-
-    // Match not found, or the current user is not a participant
-    if (
-      !match ||
-      (match.userAId !== currentUserId && match.userBId !== currentUserId)
-    ) {
-      return { error: match ? "unauthorized" : "not_found" };
-    }
-
-    await prismaAdmin.match.delete({ where: { id: matchId } });
-
-    return { success: true };
-  } catch {
-    return { error: "failed" };
-  }
+  return unmatchForUser(dbUser.id, matchId);
 }

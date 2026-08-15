@@ -2,19 +2,10 @@
 
 import { getUser } from "@/lib/auth";
 import { prismaAdmin } from "@/lib/auth/admin";
-import type { Prisma } from "@prisma/client";
+import { blockUser, reportUser, isPrismaError } from "./service";
+import type { ReportReason } from "./service";
 
-// Valid ReportReason enum values (mirrors the Prisma enum)
-const VALID_REPORT_REASONS = [
-  "FAKE_PROFILE",
-  "HARASSMENT",
-  "SEXUAL_CONTENT",
-  "SPAM",
-  "UNDERAGE",
-  "OFFENSIVE_BEHAVIOR",
-] as const;
-
-export type ReportReason = (typeof VALID_REPORT_REASONS)[number];
+export type { ReportReason };
 
 type ActionResult = { success: true } | { error: string };
 
@@ -45,17 +36,7 @@ export async function blockUserAction(targetId: string): Promise<ActionResult> {
   const currentUserId = await resolveCurrentUserId();
   if (!currentUserId) return { error: "auth" };
 
-  try {
-    await prismaAdmin.block.create({
-      data: { fromId: currentUserId, toId: targetId },
-    });
-    return { success: true };
-  } catch (err: unknown) {
-    if (isPrismaError(err, "P2002")) {
-      return { error: "already_blocked" };
-    }
-    throw err;
-  }
+  return blockUser(currentUserId, targetId);
 }
 
 /**
@@ -92,95 +73,10 @@ export async function reportUserAction(
   targetId: string,
   reason: ReportReason
 ): Promise<ActionResult> {
-  // Validate reason before auth or DB calls
-  if (!isValidReportReason(reason)) {
-    return { error: "invalid_reason" };
-  }
-
   const currentUserId = await resolveCurrentUserId();
   if (!currentUserId) return { error: "auth" };
 
-  try {
-    await prismaAdmin.$transaction(async (tx) => {
-      // Capture evidence BEFORE unmatching: find the shared conversation and
-      // snapshot its last messages, since the match delete cascades to them.
-      const match = await tx.match.findFirst({
-        where: {
-          OR: [
-            { userAId: currentUserId, userBId: targetId },
-            { userAId: targetId, userBId: currentUserId },
-          ],
-        },
-        select: {
-          conversations: {
-            take: 1,
-            orderBy: { createdAt: "desc" },
-            select: { id: true },
-          },
-        },
-      });
-
-      let evidence: Prisma.InputJsonValue | null = null;
-      const conversationId = match?.conversations[0]?.id;
-      if (conversationId) {
-        const messages = await tx.message.findMany({
-          where: { conversationId },
-          orderBy: { createdAt: "desc" },
-          take: 20,
-          select: { senderId: true, body: true, createdAt: true },
-        });
-        // Return in chronological order (oldest first) for the transcript
-        evidence = {
-          messages: messages.reverse().map((m) => ({
-            senderId: m.senderId,
-            body: m.body,
-            createdAt: m.createdAt.toISOString(),
-          })),
-        };
-      }
-
-      const reportData: Prisma.ReportUncheckedCreateInput = {
-        reporterId: currentUserId,
-        targetId,
-        reason,
-      };
-      if (evidence) reportData.evidence = evidence;
-
-      await tx.report.create({ data: reportData });
-
-      // Auto-unmatch: remove any match in either direction so the reported
-      // user leaves the reporter's chat (deleteMany: no match = no-op).
-      await tx.match.deleteMany({
-        where: {
-          OR: [
-            { userAId: currentUserId, userBId: targetId },
-            { userAId: targetId, userBId: currentUserId },
-          ],
-        },
-      });
-    });
-    return { success: true };
-  } catch (err: unknown) {
-    if (isPrismaError(err, "P2002")) {
-      return { error: "already_reported" };
-    }
-    throw err;
-  }
-}
-
-// ── Helpers ───────────────────────────────────────────────────────────────
-
-function isValidReportReason(value: unknown): value is ReportReason {
-  return VALID_REPORT_REASONS.includes(value as ReportReason);
-}
-
-function isPrismaError(err: unknown, code: string): boolean {
-  return (
-    typeof err === "object" &&
-    err !== null &&
-    "code" in err &&
-    (err as { code: string }).code === code
-  );
+  return reportUser(currentUserId, targetId, reason);
 }
 
 // ── Admin review ──────────────────────────────────────────────────────────

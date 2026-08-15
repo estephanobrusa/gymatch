@@ -3,6 +3,10 @@
 import { redirect } from "next/navigation";
 import { getUser } from "@/lib/auth";
 import { prismaAdmin } from "@/lib/auth/admin";
+import {
+  getNotificationsForUser,
+  getUnreadNotificationsCountForUser,
+} from "./service";
 import type { NotificationPreview } from "@gymatch/core";
 
 /**
@@ -28,33 +32,7 @@ async function resolveCurrentUserId(): Promise<string> {
  */
 export async function getNotificationsAction(): Promise<NotificationPreview[]> {
   const currentUserId = await resolveCurrentUserId();
-
-  const notifications = await prismaAdmin.notification.findMany({
-    where: { userId: currentUserId },
-    include: {
-      actor: {
-        select: {
-          id: true,
-          name: true,
-          photos: { select: { url: true, position: true }, orderBy: { position: "asc" }, take: 1 },
-        },
-      },
-    },
-    orderBy: { createdAt: "desc" },
-    take: 50,
-  });
-
-  return notifications.map((n) => ({
-    id: n.id,
-    type: n.type,
-    actor: n.actor
-      ? { id: n.actor.id, name: n.actor.name, photoUrl: n.actor.photos[0]?.url ?? null }
-      : null,
-    matchId: n.matchId,
-    conversationId: n.conversationId,
-    read: n.readAt !== null,
-    createdAt: n.createdAt.toISOString(),
-  }));
+  return getNotificationsForUser(currentUserId);
 }
 
 /**
@@ -62,10 +40,7 @@ export async function getNotificationsAction(): Promise<NotificationPreview[]> {
  */
 export async function getUnreadNotificationsCountAction(): Promise<number> {
   const currentUserId = await resolveCurrentUserId();
-
-  return prismaAdmin.notification.count({
-    where: { userId: currentUserId, readAt: null },
-  });
+  return getUnreadNotificationsCountForUser(currentUserId);
 }
 
 /**

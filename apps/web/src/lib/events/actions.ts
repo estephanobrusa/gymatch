@@ -5,6 +5,7 @@ import { prismaAdmin } from "@/lib/auth/admin";
 import type { Discipline, EventType } from "@prisma/client";
 import { DISCIPLINE_VALUES } from "@gymatch/core";
 import type { EventInput } from "@gymatch/core";
+import { toggleEventRsvp } from "./service";
 
 // ── Constants ────────────────────────────────────────────────────────────────
 
@@ -313,25 +314,5 @@ export async function toggleEventRsvpAction(
   const dbUser = await resolveDbUser();
   if (!dbUser) return { error: "Unauthenticated" };
 
-  const event = await prismaAdmin.event.findUnique({
-    where: { id: eventId },
-    select: { id: true },
-  });
-  if (!event) return { error: "Event not found" };
-
-  const existing = await prismaAdmin.eventRsvp.findFirst({
-    where: { eventId, userId: dbUser.id },
-    select: { id: true },
-  });
-
-  if (existing) {
-    await prismaAdmin.eventRsvp.delete({ where: { id: existing.id } });
-    return { success: true, attending: false };
-  }
-
-  await prismaAdmin.eventRsvp.create({
-    data: { eventId, userId: dbUser.id },
-  });
-
-  return { success: true, attending: true };
+  return toggleEventRsvp(eventId, dbUser.id);
 }
