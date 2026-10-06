@@ -24,6 +24,7 @@ understand how it actually works.
 | [`mobile-app.md`](./mobile-app.md) | Expo app structure, what's actually built vs. still scaffolded, mobile-specific gotchas | Working in `apps/mobile` |
 | [`testing-guide.md`](./testing-guide.md) | How testing is set up and run across web, mobile, and core; what's covered and what isn't | Before writing or running tests |
 | [`conventions-and-gotchas.md`](./conventions-and-gotchas.md) | Flat list of must-know conventions and traps, ordered by how often you'll hit them | Before opening your first PR |
+| [`commit-convention.md`](./commit-convention.md) | How to write a commit message (Conventional Commits, enforced by a git hook) and the `pnpm commit` interactive CLI | Before your first commit |
 | [`v4.md`](./v4.md) | Pending product roadmap (not architecture — a planning doc, kept separate on purpose) | Only if you need to know what's planned next |
 
 ## Suggested reading order for a new developer
@@ -34,5 +35,6 @@ understand how it actually works.
 4. [`backend-server-actions-and-api.md`](./backend-server-actions-and-api.md) — understand how data gets read and written.
 5. [`frontend-web-app.md`](./frontend-web-app.md) or [`mobile-app.md`](./mobile-app.md), depending on which app you'll actually be working in.
 6. [`conventions-and-gotchas.md`](./conventions-and-gotchas.md) — read this before your first PR, not after.
-7. [`testing-guide.md`](./testing-guide.md) — how to verify your changes.
-8. [`shared-core-package.md`](./shared-core-package.md) — once you need to touch code shared between web and mobile.
+7. [`commit-convention.md`](./commit-convention.md) — read this before your first commit; run `pnpm commit` instead of `git commit` and it walks you through it.
+8. [`testing-guide.md`](./testing-guide.md) — how to verify your changes.
+9. [`shared-core-package.md`](./shared-core-package.md) — once you need to touch code shared between web and mobile.

@@ -88,12 +88,14 @@ the recipe ends, capture it with Immer's `current()` *before* the recipe returns
 Reading a revoked proxy later throws or silently returns garbage depending on the engine. See
 [`frontend-web-app.md`](./frontend-web-app.md).
 
-## 11. The README monorepo table is stale
+## 11. How to make a commit
 
-The root [`README.md`](../README.md)'s monorepo layout table omits `apps/mobile` and
-`packages/core`, even though both exist, are wired into the workspace, and are actively
-developed. Trust [`architecture-overview.md`](./architecture-overview.md) over that table for
-the current scope of the repo.
+Commit messages are enforced via a git hook (`.husky/commit-msg` + commitlint) — a message that
+doesn't follow [Conventional Commits](https://www.conventionalcommits.org/) gets rejected. Run
+`pnpm commit` instead of `git commit` and it prompts you for type, scope, description, body, and
+breaking changes step by step, building a valid message for you. Plain `git commit -m "..."`
+still works if you already know the format — see [`commit-convention.md`](./commit-convention.md)
+for the full type list and examples.
 
 ## 12. Known environment gaps
 
