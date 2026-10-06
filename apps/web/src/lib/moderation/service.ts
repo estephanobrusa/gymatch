@@ -82,6 +82,9 @@ export async function reportUser(
     await prismaAdmin.$transaction(async (tx) => {
       // Capture evidence BEFORE unmatching: find the shared conversation and
       // snapshot its last messages, since the match delete cascades to them.
+      // Match.onDelete: Cascade -> Conversation.onDelete: Cascade -> Message
+      // rows are destroyed the instant the match is deleted below, so this
+      // snapshot MUST run first or there would be nothing left to capture.
       const match = await tx.match.findFirst({
         where: {
           OR: [

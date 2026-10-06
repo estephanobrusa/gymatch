@@ -50,7 +50,16 @@ export function ChatWindow({ conversationId, matchId, currentUserId, otherUser, 
   }, [messages]);
 
   // Supabase Realtime subscription
+  //
+  // One channel, four `postgres_changes` listeners, all scoped to this
+  // conversation/match so a reader doesn't have to scan each `.on()` block
+  // separately to know what this component reacts to:
+  //   1. INSERT on `messages`  — new message arrives, append to local state
+  //   2. DELETE on `matches`   — the other user unmatched, leave the chat
+  //   3. INSERT on `blocks`    — current user got blocked, leave the chat
+  //   4. UPDATE on `users`     — other user got banned, leave the chat
   useEffect(() => {
+
     const supabase = createClient();
 
     const channel = supabase

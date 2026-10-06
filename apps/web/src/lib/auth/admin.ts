@@ -7,6 +7,12 @@ import { PrismaClient } from "@prisma/client";
  * that Postgres skips Row Level Security entirely.  This client MUST only be
  * used server-side (Route Handlers, Server Actions, Server Components).
  *
+ * There is no RLS-respecting Prisma client anywhere in this app — this admin
+ * client bypasses Postgres Row Level Security entirely, and it is the one
+ * used by almost every server-side read/write. All authorization must be
+ * enforced manually in service/action code; it is never assumed from the
+ * database layer.
+ *
  * Never import this in client components or expose it through public APIs.
  */
 

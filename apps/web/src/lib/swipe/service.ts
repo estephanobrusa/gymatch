@@ -53,6 +53,11 @@ export async function recordSwipeForUser(
     }
 
     // 4. Mutual match — enforce ordering invariant: userAId = lexicographic min
+    //    (e.g. ids "11..." and "99..." always store userAId = "11...", no
+    //    matter who swiped last). This guarantees both swipe orders produce
+    //    the same (userAId, userBId) tuple, which is what makes
+    //    @@unique([userAId, userBId]) actually prevent duplicate matches —
+    //    without it, (A, B) and (B, A) would look like two different rows.
     const userAId = fromId < toId ? fromId : toId;
     const userBId = fromId < toId ? toId : fromId;
 

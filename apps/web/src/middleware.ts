@@ -2,6 +2,14 @@ import { createServerClient, type CookieOptions } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
 
 /**
+ * This file is ONLY the session-refresh gate: it validates that a Supabase
+ * session exists and is still valid, nothing more. It runs on the Edge
+ * runtime, so it cannot use Prisma. Every business-rule redirect (ban status,
+ * onboarding completeness, future account restrictions) lives instead in
+ * apps/web/src/app/(protected)/layout.tsx, a Node.js Server Component that
+ * can safely query the database. If you need a new redirect that depends on
+ * a DB read, add it there — not here.
+ *
  * Next.js Middleware — runs on every matched request in the Edge Runtime.
  *
  * Responsibilities:

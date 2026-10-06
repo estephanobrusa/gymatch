@@ -146,6 +146,12 @@ export function CardStack({ token, feed, onOpenProfile }: CardStackProps) {
     rewind();
   }, [isAnimating, lastSwiped, rewind]);
 
+  // Note: this correctly passes the "EXPO_PUBLIC_" prefix for the mobile env
+  // var, but the actual rewind action in packages/core/stores/swipe.store.ts
+  // calls isFeatureEnabled("REWIND") with NO prefix, so it checks the web-only
+  // NEXT_PUBLIC_FEATURE_REWIND instead. Fix: pass "EXPO_PUBLIC_" there too, i.e.
+  // isFeatureEnabled("REWIND", "EXPO_PUBLIC_"). Until fixed, the button shows
+  // but tapping it silently does nothing on mobile.
   const showRewind = useMemo(() => isFeatureEnabled("REWIND", "EXPO_PUBLIC_"), []);
 
   const buttons = (

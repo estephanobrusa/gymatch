@@ -51,6 +51,14 @@ export const useSwipeStore = create<SwipeStore>()(
         // Use immer's `current()` to produce a plain deep copy before the recipe finishes.
         // immer proxies are revoked when the recipe ends — we must escape the proxy
         // boundary before the set() call returns.
+        //
+        // Gotcha: `draftCard` is still an immer Draft<DiscoveryCard> here, not a plain
+        // object. If we stored it directly in `removed`/`lastSwiped` instead of calling
+        // `current()`, the proxy would be revoked the instant this recipe function
+        // returns — any later read (e.g. the catch-block rollback below, or `rewind()`
+        // reading `lastSwiped` in a future tick) would throw
+        // "Cannot perform 'get' on a proxy that has been revoked". Always call
+        // `current()` on a draft before it needs to outlive its `set()` call.
         const draftCard = s.stack.shift();
         if (draftCard) {
           removed = current(draftCard);
