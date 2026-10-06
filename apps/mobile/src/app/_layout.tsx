@@ -9,6 +9,7 @@ import { useEffect } from "react";
 import { ActivityIndicator, StyleSheet, View } from "react-native";
 
 import { useAuth } from "@/hooks/use-auth";
+import { addLog } from "@/lib/debug-log";
 import { createSessionFromUrl } from "@/lib/auth/oauth";
 
 const queryClient = new QueryClient();
@@ -19,14 +20,14 @@ export default function RootLayout() {
   // Handle the OAuth deep link (gymatch://#access_token=...) when the app is
   // opened from the browser callback, or already running in the background.
   useEffect(() => {
-    console.log("[DeepLink] listening for OAuth deep links");
+    addLog("[DeepLink] listening for OAuth deep links");
     Linking.getInitialURL().then((url) => {
-      console.log("[DeepLink] getInitialURL:", url ?? "(none)");
-      if (url) void createSessionFromUrl(url).catch((e) => console.log("[DeepLink] initial URL error:", e?.message));
+      addLog(`[DeepLink] getInitialURL: ${url ?? "(none)"}`);
+      if (url) void createSessionFromUrl(url).catch((e) => addLog(`[DeepLink] initial URL error: ${e?.message}`));
     });
     const subscription = Linking.addEventListener("url", ({ url }) => {
-      console.log("[DeepLink] url event:", url);
-      void createSessionFromUrl(url).catch((e) => console.log("[DeepLink] event error:", e?.message));
+      addLog(`[DeepLink] url event: ${url}`);
+      void createSessionFromUrl(url).catch((e) => addLog(`[DeepLink] event error: ${e?.message}`));
     });
     return () => subscription.remove();
   }, []);

@@ -1,6 +1,7 @@
 import * as Linking from "expo-linking";
 import * as WebBrowser from "expo-web-browser";
 
+import { addLog } from "@/lib/debug-log";
 import { authSync } from "@/lib/api/client";
 import { supabase } from "@/lib/supabase";
 
@@ -23,42 +24,47 @@ export const OAUTH_REDIRECT_URI = Linking.createURL("/");
 // This must match a Redirect URL registered in the Supabase dashboard,
 // otherwise Supabase falls back to the Site URL (localhost:3000) and the
 // web app opens instead of returning to the app.
-console.log("[OAuth] OAUTH_REDIRECT_URI =", OAUTH_REDIRECT_URI);
+// There is no error thrown when this mismatches — Supabase just silently
+// substitutes the dashboard's web Site URL and opens an in-app browser
+// pointed at it, which looks like "nothing happened" / "OAuth is broken"
+// with no diagnostic. If sign-in opens a browser instead of returning to
+// the app, check the registered redirect URL first.
+addLog(`[OAuth] OAUTH_REDIRECT_URI = ${OAUTH_REDIRECT_URI}`);
 
 export async function createSessionFromUrl(url: string): Promise<boolean> {
-  console.log("[OAuth] createSessionFromUrl received:", url);
+  addLog(`[OAuth] createSessionFromUrl received: ${url}`);
   const { queryParams } = Linking.parse(url);
-  console.log("[OAuth] parsed queryParams keys:", Object.keys(queryParams ?? {}));
+  addLog(`[OAuth] parsed queryParams keys: ${Object.keys(queryParams ?? {}).join(", ")}`);
   const accessToken = queryParams?.access_token;
   const refreshToken = queryParams?.refresh_token;
 
   if (typeof accessToken !== "string" || typeof refreshToken !== "string") {
-    console.log("[OAuth] MISSING access_token or refresh_token — NOT applying session");
+    addLog("[OAuth] MISSING access_token or refresh_token — NOT applying session");
     return false;
   }
 
-  console.log("[OAuth] tokens found — applying session (setSession)");
+  addLog("[OAuth] tokens found — applying session (setSession)");
   const { error } = await supabase.auth.setSession({
     access_token: accessToken,
     refresh_token: refreshToken,
   });
   if (error) {
-    console.log("[OAuth] setSession ERROR:", error.message);
+    addLog(`[OAuth] setSession ERROR: ${error.message}`);
     throw error;
   }
 
-  console.log("[OAuth] setSession OK — calling authSync (POST /auth/sync)");
+  addLog("[OAuth] setSession OK — calling authSync (POST /auth/sync)");
   // Ensure the Prisma user row exists before any other endpoint is used
   // (mirrors the web's syncUser at the OAuth callback). Without this, the
   // API layer cannot resolve the DB user and every request would fail.
   await authSync(accessToken);
 
-  console.log("[OAuth] authSync OK — session fully established");
+  addLog("[OAuth] authSync OK — session fully established");
   return true;
 }
 
 export async function signInWithGoogle(): Promise<void> {
-  console.log("[OAuth] signInWithGoogle called");
+  addLog("[OAuth] signInWithGoogle called");
   const { data, error } = await supabase.auth.signInWithOAuth({
     provider: "google",
     options: {
@@ -67,29 +73,28 @@ export async function signInWithGoogle(): Promise<void> {
     },
   });
   if (error) {
-    console.log("[OAuth] signInWithOAuth ERROR:", error.message);
+    addLog(`[OAuth] signInWithOAuth ERROR: ${error.message}`);
     throw error;
   }
   if (!data.url) throw new Error("OAuth failed: no authorization URL returned");
 
   // DEBUG: the authorize URL Supabase generated — contains redirect_to that
   // Supabase will honor after Google auth.
-  console.log("[OAuth] authorize URL:", data.url);
+  addLog(`[OAuth] authorize URL: ${data.url}`);
   const redirectToMatch = /redirect_to=([^&]+)/.exec(data.url);
-  console.log(
-    "[OAuth] redirect_to in URL:",
-    redirectToMatch?.[1]
-      ? decodeURIComponent(redirectToMatch[1])
-      : "(not found in URL)"
+  addLog(
+    `[OAuth] redirect_to in URL: ${
+      redirectToMatch?.[1] ? decodeURIComponent(redirectToMatch[1]) : "(not found in URL)"
+    }`
   );
 
   const result = await WebBrowser.openAuthSessionAsync(data.url, OAUTH_REDIRECT_URI);
-  console.log("[OAuth] openAuthSessionAsync result type:", result.type);
+  addLog(`[OAuth] openAuthSessionAsync result type: ${result.type}`);
   if (result.type !== "success") {
-    console.log("[OAuth] OAuth flow cancelled or dismissed — type:", result.type);
+    addLog(`[OAuth] OAuth flow cancelled or dismissed — type: ${result.type}`);
     throw new Error("OAuth flow cancelled");
   }
 
-  console.log("[OAuth] result.url:", result.url ?? "(none)");
+  addLog(`[OAuth] result.url: ${result.url ?? "(none)"}`);
   await createSessionFromUrl(result.url);
 }

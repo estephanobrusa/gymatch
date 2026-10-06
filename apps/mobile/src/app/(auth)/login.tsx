@@ -2,17 +2,20 @@ import { useState } from "react";
 import {
   ActivityIndicator,
   Pressable,
+  ScrollView,
   StyleSheet,
   Text,
   View,
 } from "react-native";
 
 import { useAuth } from "@/hooks/use-auth";
+import { clearLogs, useDebugLog } from "@/lib/debug-log";
 
 export default function LoginScreen() {
   const { signInWithGoogle } = useAuth();
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const logs = useDebugLog();
 
   const handleGoogle = async () => {
     setSubmitting(true);
@@ -49,6 +52,28 @@ export default function LoginScreen() {
           <Text style={styles.googleText}>Continue with Google</Text>
         )}
       </Pressable>
+
+      {/* DEBUG panel — shows OAuth flow events directly on screen.
+          Temporary: remove once the OAuth deep-link issue is resolved. */}
+      <View style={styles.debugPanel}>
+        <View style={styles.debugHeader}>
+          <Text style={styles.debugTitle}>DEBUG LOG</Text>
+          <Pressable onPress={clearLogs} hitSlop={8}>
+            <Text style={styles.debugClear}>clear</Text>
+          </Pressable>
+        </View>
+        <ScrollView style={styles.debugScroll} nestedScrollEnabled>
+          {logs.length === 0 ? (
+            <Text style={styles.debugLine}>— no events yet —</Text>
+          ) : (
+            logs.map((l, i) => (
+              <Text key={i} style={styles.debugLine}>
+                {l.at} {l.msg}
+              </Text>
+            ))
+          )}
+        </ScrollView>
+      </View>
     </View>
   );
 }
@@ -111,5 +136,43 @@ const styles = StyleSheet.create({
   },
   pressed: {
     opacity: 0.8,
+  },
+  debugPanel: {
+    position: "absolute",
+    left: 12,
+    right: 12,
+    bottom: 12,
+    maxHeight: 220,
+    backgroundColor: "rgba(0,0,0,0.85)",
+    borderColor: "#3f3f46",
+    borderWidth: 1,
+    borderRadius: 10,
+    padding: 8,
+  },
+  debugHeader: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    marginBottom: 6,
+  },
+  debugTitle: {
+    color: "#fbbf24",
+    fontSize: 11,
+    fontWeight: "800",
+    letterSpacing: 1,
+  },
+  debugClear: {
+    color: "#71717a",
+    fontSize: 12,
+  },
+  debugScroll: {
+    maxHeight: 170,
+  },
+  debugLine: {
+    color: "#a1f0b0",
+    fontFamily: "Menlo",
+    fontSize: 10,
+    lineHeight: 14,
+    marginBottom: 2,
   },
 });
