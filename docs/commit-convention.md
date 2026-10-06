@@ -7,7 +7,7 @@ This repo enforces [Conventional Commits](https://www.conventionalcommits.org/) 
 A consistent commit format makes the project history actually useful:
 
 - **Readable history**: anyone can scan `git log` and immediately understand what each commit does and why, without opening the diff.
-- **Automated tooling**: tools like changelog generators and semantic version bumpers read the commit type (`feat`, `fix`, etc.) to decide what changed and how the version number should move. This repo already has `scripts/release-version.mjs` doing semver bumps — keeping commit types consistent now makes it straightforward to wire that script (or a changelog generator) directly into commit history later, without needing to rewrite history first.
+- **Automated tooling**: tools like changelog generators and semantic version bumpers read the commit type (`feat`, `fix`, etc.) to decide what changed and how the version number should move. This repo already has `cicd/release-version.mjs` doing semver bumps — keeping commit types consistent now makes it straightforward to wire that script (or a changelog generator) directly into commit history later, without needing to rewrite history first.
 - **Easier code review and bisecting**: a well-formed commit message tells reviewers (and `git bisect`) the scope and intent of a change at a glance.
 
 ## The format
